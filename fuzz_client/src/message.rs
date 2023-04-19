@@ -1,8 +1,13 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 use std::collections::HashMap;
 use std::default::Default;
 
 
 use crate::Protocol; 
+use crate::protocols::GreetingProtocol;
 
 
 // Message is a generic struct that depends on a type P implementing
@@ -13,13 +18,15 @@ use crate::Protocol;
 // methods like build_message, validate_message, etc, need to be used, the 
 // Message struct will use the implementations provided by SIPProtocol.
 pub struct Message<P: Protocol> {
-	protocol: P,
+	protocol: P, // This gives us an instance of the type implementing the Protocol trait
 	data: Vec<u8>,
 	message_type: P::MessageType,
 	sections: HashMap<P::MessageSectionsKey, P::MessageSectionsValue>,
 }
 
 impl<P: Protocol> Message<P> {
+	// This is the method which creates a new Message instance using the default values
+	// and the Default implementation of P::MessageType 
 	pub fn new(protocol: P) -> Self where <P as Protocol>::MessageType: Default {
 		Self {
 			protocol,
@@ -28,17 +35,21 @@ impl<P: Protocol> Message<P> {
 			sections: HashMap::new(),
 		}
 	}
+
 	// Below are wrapper methods for the protocol specific implementation
 	// of the methods by the same name. This approach causes Message 
 	// to become a higher-level abstraction that encapsualtes the details
 	// of working with specific protocols. 
 
-	pub fn random_message(&self) -> Message<P> {
-		self.protocol.random_message()
+	// from_bytes and random_message are responsible for creating new Message
+	// instances and they don't need to be called on an existing instance. Instead
+	// they take protocol as an argument.
+	pub fn from_bytes(protocol: P, message_bytes: &[u8]) -> Self {
+		protocol.build_message(message_bytes)
 	}
 
-	pub fn build_message(&mut self, message_bytes: &[u8]) -> Message<P> {
-		self.protocol.build_message(message_bytes)
+	pub fn random_message(protocol: P) -> Message<P> {
+		protocol.random_message()
 	}
 
 	pub fn mutate_message(&self) -> Message<P> {
