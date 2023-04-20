@@ -3,6 +3,8 @@
 #![allow(unused_variables)]
 
 use std::default::Default;
+use rand::seq::SliceRandom;
+use std::collections::HashMap;
 
 use crate::Protocol;
 use crate::Message;
@@ -62,8 +64,42 @@ impl Protocol for GreetingProtocol {
 	type MessageSectionsValue = GreetingMessageSectionsValue;
 
 	fn random_message(&self) -> Message<Self> {
-		todo!();
+		let mut rng = rand::thread_rng();
+		let possible_payloads: [&str; 3] = ["Hello!\n", "What time is it?\n", "Goodbye!\n"];
+	
+		let payload = possible_payloads.choose(&mut rng).unwrap();
+	    let (message_type, header) = match *payload {
+	        "Hello!\n" => (GreetingMessageType::Hello, [0x48, 0x45, 0x4C, 0x4F]),
+	        "What time is it?\n" => (GreetingMessageType::TimeRequest, [0x54, 0x49, 0x4D, 0x45]),
+	        "Goodbye!\n" => (GreetingMessageType::Goodbye, [0x42, 0x59, 0x45, 0x5F]),
+	        _ => unreachable!(),
+	    };
+
+
+	    let mut sections = HashMap::new();
+	    sections.insert(
+	        GreetingMessageSectionsKey::Header,
+	        GreetingMessageSectionsValue { header, ..Default::default() },
+	    );
+	    sections.insert(
+	        GreetingMessageSectionsKey::Length,
+	        GreetingMessageSectionsValue { length: payload.len() as u64, ..Default::default() },
+	    );
+	    sections.insert(
+	        GreetingMessageSectionsKey::Payload,
+	        GreetingMessageSectionsValue { payload: payload.as_bytes().to_vec(), ..Default::default() },
+	    );
+
+	    let data = [&header[..], &(payload.len() as u64).to_be_bytes(), &payload.as_bytes()].concat();
+
+	    Message {
+	        protocol: GreetingProtocol,
+	        data,
+	        message_type,
+	        sections,
+	    }
 	}
+
 
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
 		// Logic to build a message whose format is defined by GreetingProtocol
