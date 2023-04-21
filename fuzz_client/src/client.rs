@@ -15,9 +15,11 @@ use rand::distributions::WeightedIndex;
 
 use crate::Protocol; 
 use crate::Message;
-pub crate::MessageSequence;
+use crate::MessageSequence;
 use crate::protocols::GreetingProtocol;
 
+
+type StateModel = HashMap<ServerState, Vec<StateTransition>>;
 
 pub struct Client<P: Protocol> {
 	server_address: String,
@@ -27,34 +29,29 @@ pub struct Client<P: Protocol> {
 	message_pool: Vec<Message<P>>, 
 }
 
-impl<P: Protocol> Client<P> {
-	// Initialize new client with random corpus and message_pool
-	pub fn new(server_address: String, protocol: P) -> Self {
-		const MESSAGE_SEQUENCE_LENGTH: usize = 10;
-		const MESSAGE_POOL_LENGTH: usize = 10;
-		const INITIAL_CORPUS_LENGTH: usize = 10;
+impl<P: Protocol + Clone> Client<P> {
+    // Initialize new client with random corpus and message_pool
+    pub fn new(server_address: String, protocol: P) -> Self {
+        const MESSAGE_SEQUENCE_LENGTH: usize = 10;
+        const MESSAGE_POOL_LENGTH: usize = 10;
+        const INITIAL_CORPUS_LENGTH: usize = 10;
 
-		let mut corpus: Vec::new();
-		for _ in 0..INITIAL_CORPUS_LENGTH {
-			corpus.push(MessageSequence::random_message_sequence(protocol.clone(), MESSAGE_SEQUENCE_LENGTH));		
-		}
+        let mut corpus = Vec::new();
+        for _ in 0..INITIAL_CORPUS_LENGTH {
+            corpus.push(MessageSequence::random_message_sequence(protocol.clone(), MESSAGE_SEQUENCE_LENGTH));
+        }
 
-		let mut message_pool: Vec<Message<P>> = Vec::new();
-		for _ in 0..MESSAGE_POOL_LENGTH {
-			message_pool.push(Message::random_message(protocol.clone()));
-		}
+        let mut message_pool = Vec::new();
+        for _ in 0..MESSAGE_POOL_LENGTH {
+            message_pool.push(Message::random_message(protocol.clone()));
+        }
 
-		Self {
-			server_address,
-			protocol, 
-			corpus, 
-			state_model: HashMap::new(),
-			message_pool,
-		}
-	}
-
-	fn initialize_stream(&mut self) -> TcpStream {
-		TcpStream(self.server_address.as_str())
-		.expect("Could not connect to server")
-	}
+        Self {
+            server_address,
+            protocol,
+            corpus,
+            state_model: HashMap::new(),
+            message_pool,
+        }
+    }
 }
