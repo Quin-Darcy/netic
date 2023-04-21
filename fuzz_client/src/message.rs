@@ -44,12 +44,12 @@ impl<P: Protocol> Message<P> {
 	// from_bytes and random_message are responsible for creating new Message
 	// instances and they don't need to be called on an existing instance. Instead
 	// they take protocol as an argument.
-	pub fn from_bytes(protocol: P, message_bytes: &[u8]) -> Self {
-		protocol.build_message(message_bytes)
-	}
-
 	pub fn random_message(protocol: P) -> Message<P> {
 		protocol.random_message()
+	}
+
+	pub fn from_bytes(protocol: P, message_bytes: &[u8]) -> Self {
+		protocol.build_message(message_bytes)
 	}
 
 	pub fn mutate_message(&self) -> Message<P> {
