@@ -18,10 +18,10 @@ use crate::protocols::GreetingProtocol;
 // methods like build_message, validate_message, etc, need to be used, the 
 // Message struct will use the implementations provided by SIPProtocol.
 pub struct Message<P: Protocol> {
-	protocol: P, // This gives us an instance of the type implementing the Protocol trait
-	data: Vec<u8>,
-	message_type: P::MessageType,
-	sections: HashMap<P::MessageSectionsKey, P::MessageSectionsValue>,
+	pub protocol: P, // This gives us an instance of the type implementing the Protocol trait
+	pub data: Vec<u8>,
+	pub message_type: P::MessageType,
+	pub sections: HashMap<P::MessageSectionsKey, P::MessageSectionsValue>,
 }
 
 impl<P: Protocol> Message<P> {

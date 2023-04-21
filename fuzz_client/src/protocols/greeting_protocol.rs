@@ -102,9 +102,51 @@ impl Protocol for GreetingProtocol {
 
 
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
-		// Logic to build a message whose format is defined by GreetingProtocol
-		todo!();
+	    const MIN_MESSAGE_LENGTH: usize = 12;
+
+	    // Logic to build a message whose format is defined by GreetingProtocol
+	    if message_bytes.len() < MIN_MESSAGE_LENGTH {
+	        panic!("Error parsing raw message data");
+	    }
+
+	    let (header, remaining) = message_bytes.split_at(4);
+	    let header = header.to_vec();
+	    let (length, payload) = remaining.split_at(8);
+	    let length: u64 = u64::from_be_bytes(length.try_into().unwrap());
+
+	    let message_type = match std::str::from_utf8(payload) {
+	        Ok("Hello!\n") => GreetingMessageType::Hello,
+	        Ok("What time is it?\n") => GreetingMessageType::TimeRequest,
+	        Ok("Goodbye!\n") => GreetingMessageType::Goodbye,
+	        _ => panic!("Unexpected payload: {:?}", payload),
+	    };
+
+	    let header_array: [u8; 4] = header.clone().try_into().expect("Header has incorrect length");
+
+	    let mut sections = HashMap::new();
+	    sections.insert(
+	        GreetingMessageSectionsKey::Header,
+	        GreetingMessageSectionsValue { header: header_array, ..Default::default() },
+	    );
+	    sections.insert(
+	        GreetingMessageSectionsKey::Length,
+	        GreetingMessageSectionsValue { length, ..Default::default() },
+	    );
+	    sections.insert(
+	        GreetingMessageSectionsKey::Payload,
+	        GreetingMessageSectionsValue { payload: payload.to_vec(), ..Default::default() },
+	    );
+
+	    let data = [&header[..], &(length.to_be_bytes()), &payload[..]].concat();
+
+	    Message {
+	        protocol: GreetingProtocol,
+	        data,
+	        message_type,
+	        sections,
+	    }
 	}
+
 
 	fn mutate_message(&self, message: &Message<Self>) -> Message<Self> {
 		// Logic to mutate the message
