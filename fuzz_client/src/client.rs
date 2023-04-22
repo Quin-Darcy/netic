@@ -19,13 +19,13 @@ use crate::MessageSequence;
 use crate::protocols::GreetingProtocol;
 
 
-type StateModel = HashMap<ServerState, Vec<StateTransition>>;
+//type StateModel = HashMap<ServerState, Vec<StateTransition>>;
 
-pub struct Client<P: Protocol> {
+pub struct Client<P: Protocol + Clone> {
 	server_address: String,
 	protocol: P,
 	corpus: Vec<MessageSequence<P>>,
-	state_model: StateModel,
+	//state_model: StateModel,
 	message_pool: Vec<Message<P>>, 
 }
 
@@ -50,7 +50,7 @@ impl<P: Protocol + Clone> Client<P> {
             server_address,
             protocol,
             corpus,
-            state_model: HashMap::new(),
+            //state_model: HashMap::new(),
             message_pool,
         }
     }

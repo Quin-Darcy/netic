@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::Protocol;
 use crate::Message;
+use crate::Response;
 
 
 #[derive(Clone, PartialEq, Debug)]
@@ -53,6 +54,13 @@ impl Default for GreetingMessageSectionsValue {
     }
 }
 
+pub struct GreetingServerState {
+	response_code: u16,
+	status_message: String,
+	payload: String,
+}
+
+#[derive(Clone)]
 pub struct GreetingProtocol;
 
 
@@ -62,6 +70,8 @@ impl Protocol for GreetingProtocol {
 	type MessageType = GreetingMessageType;
 	type MessageSectionsKey = GreetingMessageSectionsKey;
 	type MessageSectionsValue = GreetingMessageSectionsValue;
+
+	type ServerState = GreetingServerState;
 
 	fn random_message(&self) -> Message<Self> {
 		let mut rng = rand::thread_rng();
@@ -99,7 +109,6 @@ impl Protocol for GreetingProtocol {
 	        sections,
 	    }
 	}
-
 
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
 	    const MIN_MESSAGE_LENGTH: usize = 12;
@@ -156,5 +165,24 @@ impl Protocol for GreetingProtocol {
 	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> Message<Self> {
 		// Logic for performing crossover on two Messages
 		todo!();
+	}
+
+	fn parse_response(&self, response: &Response) -> GreetingServerState {
+	    let response_str: String = String::from_utf8(response.data.clone()).unwrap();
+	    let response_parts: Vec<&str> = response_str.split(";").collect();
+
+	    if let [response_code_str, status_message, payload] = response_parts.as_slice() {
+	        let response_code = response_code_str.parse::<u16>().unwrap();
+	        let status_message: String = String::from(*status_message);
+	        let payload: String = String::from(*payload);
+
+	        GreetingServerState {
+	            response_code,
+	            status_message,
+	            payload,
+	        }
+	    } else {
+	        panic!("Invalid response format");
+	    }
 	}
 }

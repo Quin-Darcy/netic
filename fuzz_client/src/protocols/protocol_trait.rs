@@ -3,6 +3,7 @@
 #![allow(unused_variables)]
 
 use crate::Message;
+use crate::Response;
 
 
 // The Protocol trait is a common interface which defines a set of shared behavior 
@@ -11,6 +12,8 @@ pub trait Protocol: Sized {
 	type MessageType;
 	type MessageSectionsKey;
 	type MessageSectionsValue;
+
+	type ServerState;
 
 	// Note that Self is a type alias that refers to the implementing type, whereas
 	// &self is a reference to the instance of the implementing type. Here, by type
@@ -30,4 +33,6 @@ pub trait Protocol: Sized {
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self>;
 	fn mutate_message(&self, message: &Message<Self>) -> Message<Self>;
 	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> Message<Self>;
+
+	fn parse_response(&self, response: &Response) -> Self::ServerState;
 }
