@@ -5,26 +5,28 @@
 use std::default::Default;
 use rand::seq::SliceRandom;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use crate::Protocol;
 use crate::Message;
 use crate::Response;
 
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq)]
 pub enum GreetingMessageType {
 	Hello,
 	TimeRequest,
 	Goodbye,
 }
 
-#[derive(Clone, PartialEq, Debug, Hash, Eq)]
+#[derive(Clone, Hash, Eq, PartialEq)]
 pub enum GreetingMessageSectionsKey {
 	Header,
 	Length,
 	Payload,
 }
 
+#[derive(Clone, PartialEq)]
 pub struct GreetingMessageSectionsValue {
 	pub header: [u8; 4],
 	pub length: u64,
@@ -45,7 +47,6 @@ impl Default for GreetingMessageSectionsKey {
 
 impl Default for GreetingMessageSectionsValue {
     fn default() -> Self {
-        //Self::Text(String::new())
         GreetingMessageSectionsValue {
         	header: [0x00, 0x00, 0x00, 0x00],
         	length: 0_u64,
@@ -54,13 +55,14 @@ impl Default for GreetingMessageSectionsValue {
     }
 }
 
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct GreetingServerState {
 	response_code: u16,
 	status_message: String,
 	payload: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct GreetingProtocol;
 
 

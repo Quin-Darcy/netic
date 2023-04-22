@@ -2,18 +2,21 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
+use std::hash::Hash;
+use std::cmp::PartialEq;
+
 use crate::Message;
 use crate::Response;
 
 
 // The Protocol trait is a common interface which defines a set of shared behavior 
 // across all types which have an implementation of the Prtotocol trait
-pub trait Protocol: Sized {
-	type MessageType;
-	type MessageSectionsKey;
-	type MessageSectionsValue;
+pub trait Protocol: Sized + Clone {
+	type MessageType: PartialEq + Clone;
+	type MessageSectionsKey: Eq + Hash + Clone;
+	type MessageSectionsValue: PartialEq + Clone;
 
-	type ServerState;
+	type ServerState: Clone + Eq + PartialEq + Hash;
 
 	// Note that Self is a type alias that refers to the implementing type, whereas
 	// &self is a reference to the instance of the implementing type. Here, by type

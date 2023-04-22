@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use crate::Protocol;
 use crate::message::Message;
 
@@ -16,22 +18,6 @@ impl<P: Protocol + Clone> MessageSequence<P> {
         }
     }
 
-    pub fn random_message_sequence(protocol: P, num_messages: usize) -> Self {
-        let mut messages: Vec<Message<P>> = Vec::new();
-
-        for _ in 0..num_messages {
-            messages.push(Message::random_message(protocol.clone()));
-        }
-
-        let timings: Vec<f32> = vec![1.0; num_messages-1];
-
-        Self {
-            messages,
-            timings,
-            fitness: 0.0
-        }
-    }
-
     pub fn from_messages(messages: Vec<Message<P>>, timings: Vec<f32>) -> Self {
         Self {
             messages,
@@ -39,9 +25,24 @@ impl<P: Protocol + Clone> MessageSequence<P> {
             fitness: 0.0,
         }
     }
+
+    pub fn random_message_sequence(protocol: P, sequence_length: usize) -> Self {
+        let mut rng = rand::thread_rng();
+        let mut messages: Vec<Message<P>> = Vec::new();
+        let mut timings: Vec<f32> = Vec::new();
+
+        for _ in 0..sequence_length {
+            messages.push(Message::random_message(protocol.clone()));
+        }
+
+        for _ in 0..sequence_length - 1 {
+            timings.push(rng.gen_range(1.0..2.0));
+        }
+
+        Self {
+            messages,
+            timings,
+            fitness: 0.0,
+        }
+    }
 }
-
-
-
-
-

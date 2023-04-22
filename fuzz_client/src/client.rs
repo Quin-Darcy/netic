@@ -5,6 +5,8 @@
 
 use std::str;
 use std::thread;
+use std::hash::Hash;
+use std::cmp::PartialEq;
 use std::time::Duration;
 use std::collections::HashMap;
 use std::net::{TcpStream, Shutdown};
@@ -16,20 +18,21 @@ use rand::distributions::WeightedIndex;
 use crate::Protocol; 
 use crate::Message;
 use crate::MessageSequence;
-use crate::protocols::GreetingProtocol;
+use crate::StateTransition;
+use crate::StateModel;
+
+use crate::GreetingProtocol;
 
 
-//type StateModel = HashMap<ServerState, Vec<StateTransition>>;
-
-pub struct Client<P: Protocol + Clone> {
+pub struct Client<P: Protocol + Clone + PartialEq> {
 	server_address: String,
 	protocol: P,
 	corpus: Vec<MessageSequence<P>>,
-	//state_model: StateModel,
+	state_model: StateModel<P>,
 	message_pool: Vec<Message<P>>, 
 }
 
-impl<P: Protocol + Clone> Client<P> {
+impl<P: Protocol + Clone + PartialEq> Client<P> {
     // Initialize new client with random corpus and message_pool
     pub fn new(server_address: String, protocol: P) -> Self {
         const MESSAGE_SEQUENCE_LENGTH: usize = 10;
@@ -38,7 +41,10 @@ impl<P: Protocol + Clone> Client<P> {
 
         let mut corpus = Vec::new();
         for _ in 0..INITIAL_CORPUS_LENGTH {
-            corpus.push(MessageSequence::random_message_sequence(protocol.clone(), MESSAGE_SEQUENCE_LENGTH));
+            corpus.push(MessageSequence::random_message_sequence(
+                protocol.clone(),
+                MESSAGE_SEQUENCE_LENGTH,
+            ));
         }
 
         let mut message_pool = Vec::new();
@@ -50,7 +56,7 @@ impl<P: Protocol + Clone> Client<P> {
             server_address,
             protocol,
             corpus,
-            //state_model: HashMap::new(),
+            state_model: StateModel::new(),
             message_pool,
         }
     }

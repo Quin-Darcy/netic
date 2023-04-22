@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::default::Default;
+use std::hash::Hash;
 
 
 use crate::Protocol; 
@@ -60,3 +61,27 @@ impl<P: Protocol> Message<P> {
 		self.protocol.crossover_message(&self, &other)
 	}
 }
+
+// Since PartialEq and Clone cannot be derived automatically for Message
+// because it has a generic type parameter P which is bound by the Protocol
+// trait which does not implement PartialEq or Clone, then we must manually 
+// implement these traits. 
+impl<P: Protocol> PartialEq for Message<P> {
+    fn eq(&self, other: &Self) -> bool {
+        self.message_type == other.message_type
+            && self.data == other.data
+            && self.sections == other.sections
+    }
+}
+
+impl<P: Protocol> Clone for Message<P> {
+    fn clone(&self) -> Self {
+        Self {
+        	protocol: self.protocol.clone(),
+        	data: self.data.clone(),
+        	message_type: self.message_type.clone(),
+        	sections: self.sections.clone(),
+        }
+    }
+}
+
