@@ -5,6 +5,7 @@
 use std::default::Default;
 use rand::seq::SliceRandom;
 use rand::prelude::*;
+use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -276,7 +277,7 @@ fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProto
 
 	let mut mutated_sections = message.sections.clone();
 	let mutated_message: Message<GreetingProtocol>;
-	
+
 	// This instance is needed to access the methods within the Protocol implementation
 	// of GreetingProtocol
 	let protocol_instance = GreetingProtocol;
@@ -347,10 +348,79 @@ fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProto
 // Crossover helper functions
 fn crossover_bytes(message1: &Message<GreetingProtocol>, message2: &Message<GreetingProtocol>) -> (Message<GreetingProtocol>, Message<GreetingProtocol>) {
 	// Logic for two-point crossover 
-	todo!();
+	let mut rng = rand::thread_rng();
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of GreetingProtocol
+	let protocol_instance = GreetingProtocol;
+
+	// Determine which parent's data vector hash more bytes
+	let (small_parent_data, big_parent_data) = if message1.data.len() < message2.data.len() {
+		(message1.data.clone(), message2.data.clone())
+	} else {
+		(message2.data.clone(), message1.data.clone())
+	};
+
+	let min_len = small_parent_data.len();
+	let max_len = big_parent_data.len();
+
+	let crossover_point1 = rng.gen_range(0..min_len);
+	let crossover_point2 = rng.gen_range(crossover_point1..min_len);
+
+	let mut small_offspring_data = small_parent_data.clone();
+	let mut big_offspring_data = big_parent_data.clone();
+
+	// This loop cross transplants the regions defined by the two crossover points
+	for i in 0..max_len {
+		if i >= crossover_point1 && i <= crossover_point2 {
+			small_offspring_data[i] = big_parent_data[i];
+			big_offspring_data[i] = small_parent_data[i];
+		}
+	} 
+
+	let offspring1 = protocol_instance.build_message(&small_offspring_data);
+	let offspring2 = protocol_instance.build_message(&big_offspring_data);
+	
+	return (offspring1, offspring2);
 }
 
 fn crossover_sections(message1: &Message<GreetingProtocol>, message2: &Message<GreetingProtocol>) -> (Message<GreetingProtocol>, Message<GreetingProtocol>) {
-	// Logic for uniform crossover
-	todo!();
+    let mut rng = rand::thread_rng();
+    
+	// This instance is needed to access the methods within the Protocol implementation
+	// of GreetingProtocol
+	let protocol_instance = GreetingProtocol;
+    
+    let mut offspring1_sections = HashMap::new();
+    let mut offspring2_sections = HashMap::new();
+
+    // Construct the offsprings' sections by going through each key and deciding if the value
+    // for that key should come from the first or second parent. Which ever choice is made, the other
+    // offspring receives the value from the opposite parent
+    for key in &[GreetingMessageSectionsKey::Header, GreetingMessageSectionsKey::Length, GreetingMessageSectionsKey::Payload] {
+        if rng.gen_bool(0.5) {
+            offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+            offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+        } else {
+            offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+            offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+        }
+    }
+
+    // This closure assembles the data for the offspring by going through the respective sections 
+    // which were just populated and collection all the information into a byte array which is sent
+    // over to protocol_instance.build_message, returning an instance of Message.
+    let build_offspring = |sections: HashMap<GreetingMessageSectionsKey, GreetingMessageSectionsValue>| {
+        let header = sections.get(&GreetingMessageSectionsKey::Header).unwrap().header;
+        let length = sections.get(&GreetingMessageSectionsKey::Length).unwrap().length.to_be_bytes();
+        let payload = &sections.get(&GreetingMessageSectionsKey::Payload).unwrap().payload;
+
+        let new_data: Vec<u8> = [&header[..], &length[..], payload].concat();
+        protocol_instance.build_message(&new_data)
+    };
+
+    let offspring1 = build_offspring(offspring1_sections);
+    let offspring2 = build_offspring(offspring2_sections);
+
+    (offspring1, offspring2)
 }
