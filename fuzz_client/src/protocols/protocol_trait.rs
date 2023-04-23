@@ -10,10 +10,13 @@ use crate::Response;
 
 
 // The Protocol trait is a common interface which defines a set of shared behavior 
-// across all types which have an implementation of the Prtotocol trait
+// across all types which have an implementation of the Prtotocol trait.
+//
+// The declaration states that any type implementing the Protocol trait must 
+// also implement the Clone trait.
 pub trait Protocol: Sized+Clone {
 	type MessageType: PartialEq + Clone;
-	type MessageSectionsKey: PartialEq + Eq + Hash + Clone;
+	type MessageSectionsKey: PartialEq + Eq + Hash + Clone ;
 	type MessageSectionsValue: PartialEq + Clone;
 
 	type ServerState: Clone + Eq + PartialEq + Hash;
@@ -35,7 +38,7 @@ pub trait Protocol: Sized+Clone {
 	fn random_message(&self) -> Message<Self>;
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self>;
 	fn mutate_message(&self, message: &Message<Self>) -> Message<Self>;
-	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> Message<Self>;
+	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>);
 
 	fn parse_response(&self, response: &Response) -> Self::ServerState;
 }

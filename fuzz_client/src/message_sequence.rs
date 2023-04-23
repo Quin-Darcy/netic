@@ -1,3 +1,8 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_assignments)]
+
 use rand::prelude::*;
 
 use crate::Protocol;
@@ -44,6 +49,14 @@ impl<P: Protocol> MessageSequence<P> {
             timings,
             fitness: 0.0,
         }
+    }
+
+    pub fn mutate_message_sequence(&mut self) {
+        todo!();
+    }
+
+    pub fn crossover_message_sequence(&mut self, other: &MessageSequence<P>) -> MessageSequence<P> {
+        todo!();
     }
 }
 

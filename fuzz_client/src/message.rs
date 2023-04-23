@@ -45,7 +45,7 @@ impl<P: Protocol> Message<P> {
 	// from_bytes and random_message are responsible for creating new Message
 	// instances and they don't need to be called on an existing instance. Instead
 	// they take protocol as an argument.
-	pub fn random_message(protocol: P) -> Message<P> {
+	pub fn random_message(protocol: P) -> Self {
 		protocol.random_message()
 	}
 
@@ -53,12 +53,16 @@ impl<P: Protocol> Message<P> {
 		protocol.build_message(message_bytes)
 	}
 
-	pub fn mutate_message(&self) -> Message<P> {
-		self.protocol.mutate_message(&self)
+	pub fn mutate_message(&mut self) {
+		let mutated_message = self.protocol.mutate_message(self);
+
+		self.data = mutated_message.data;
+		self.message_type = mutated_message.message_type;
+		self.sections = mutated_message.sections;
 	}
 
-	pub fn crossover_message(&self, other: &Message<P>) -> Message<P> {
-		self.protocol.crossover_message(&self, &other)
+	pub fn crossover_message(&self, other: &Self) -> (Self, Self) {
+		self.protocol.crossover_message(self, other)
 	}
 }
 

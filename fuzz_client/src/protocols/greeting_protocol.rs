@@ -4,6 +4,7 @@
 
 use std::default::Default;
 use rand::seq::SliceRandom;
+use rand::prelude::*;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -87,7 +88,6 @@ impl Protocol for GreetingProtocol {
 	        _ => unreachable!(),
 	    };
 
-
 	    let mut sections = HashMap::new();
 	    sections.insert(
 	        GreetingMessageSectionsKey::Header,
@@ -158,17 +158,6 @@ impl Protocol for GreetingProtocol {
 	    }
 	}
 
-
-	fn mutate_message(&self, message: &Message<Self>) -> Message<Self> {
-		// Logic to mutate the message
-		todo!();
-	}
-
-	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> Message<Self> {
-		// Logic for performing crossover on two Messages
-		todo!();
-	}
-
 	fn parse_response(&self, response: &Response) -> GreetingServerState {
 	    let response_str: String = String::from_utf8(response.data.clone()).unwrap();
 	    let response_parts: Vec<&str> = response_str.split(";").collect();
@@ -187,4 +176,94 @@ impl Protocol for GreetingProtocol {
 	        panic!("Invalid response format");
 	    }
 	}
+
+	fn mutate_message(&self, message: &Message<Self>) -> Message<Self> {
+		// Randomly choose between byte-level mutation or section-level mutation
+		let mut rng = rand::thread_rng();
+		let mutation_level = rng.gen_range(0..2);  
+
+		match mutation_level {
+			0 => mutate_bytes(message),
+			1 => mutate_sections(message),
+			_ => panic!("Unexpected mutation_level value"),
+		}
+	}
+
+	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>) {
+		// Randomly choose between byte-level or section-level crossover
+		let mut rng = rand::thread_rng();
+		let crossover_level = rng.gen_range(0..2);
+
+		match crossover_level {
+			0 => crossover_bytes(message1, message2),
+			1 => crossover_sections(message1, message2),
+			_ => panic!("Unexpected crossover_level value"),
+		}
+	}
+}
+
+// Mutation helper functions
+fn mutate_bytes(message: &Message<GreetingProtocol>) -> Message<GreetingProtocol> {
+	let mut rng = rand::thread_rng();
+	let mutation_type = rng.gen_range(0..5);
+
+	let mut mutated_message = message.clone();
+
+	match mutation_type {
+		0 => {
+			// Byte substitution
+			todo!();
+		}
+		1 => {
+			// Byte insertion
+			todo!();
+		}
+		2 => {
+			// Byte deletion
+			todo!();
+		}
+		3 => {
+			// Byte swap
+			todo!();
+		}
+		_ => {}
+	}
+
+	return mutated_message;
+}
+
+fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProtocol> {
+	let mut rng = rand::thread_rng();
+	let mutation_type = rng.gen_range(0..3);
+
+	let mutated_message = message.clone();
+
+	match mutation_type {
+		0 => {
+			// Header swap
+			todo!();
+		}
+		1 => {
+			// Invalidate payload length
+			todo!();
+		}
+		2 => {
+			// Insert or replace random bytes into payload
+			todo!();
+		}
+		_ => {}
+	}
+
+	return mutated_message;
+}
+
+// Crossover helper functions
+fn crossover_bytes(message1: &Message<GreetingProtocol>, message2: &Message<GreetingProtocol>) -> (Message<GreetingProtocol>, Message<GreetingProtocol>) {
+	// Logic for two-point crossover 
+	todo!();
+}
+
+fn crossover_sections(message1: &Message<GreetingProtocol>, message2: &Message<GreetingProtocol>) -> (Message<GreetingProtocol>, Message<GreetingProtocol>) {
+	// Logic for uniform crossover
+	todo!();
 }
