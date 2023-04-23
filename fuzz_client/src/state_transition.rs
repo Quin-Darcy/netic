@@ -11,7 +11,7 @@ use crate::Message;
 // Protocol trait. This ensures that the Message<P> field must be a message that 
 // belongs to a protocol that implements the Protocol trait.  
 pub struct StateTransition<S, P: Protocol> {
-	pub current_state: S,
+	pub source_state: S,
 	pub message: Message<P>,
-	pub next_state: S,
+	pub target_state: S,
 }

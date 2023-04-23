@@ -39,7 +39,7 @@ pub struct FuzzConfig {
 pub struct Client<P: Protocol + Clone + PartialEq> {
 	server_address: String,
 	protocol: P,
-	corpus: Vec<MessageSequence<P>>,
+	pub corpus: Vec<MessageSequence<P>>,
 	state_model: StateModel<P>,
 	message_pool: Vec<Message<P>>, 
 }
@@ -94,6 +94,8 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	}
 
 	// A new TcpStream is created and destroyed for each MessageSequence
+	// Send every MessageSequence in the current corpus and collect the Message sent
+	// with the Responses received and return this collection
 	fn run_message_sequence(&mut self, message_sequence: &MessageSequence<P>) -> Vec<(Message<P>, Response)> {
 		let stream: TcpStream = self.initialize_stream();
 		let mut reader = BufReader::new(&stream);
@@ -115,6 +117,48 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		self.terminate_stream(stream);
 		return message_response
 	}
+
+	// Take the interection history (Vec<Message<P>, Response)>) of each MessageSequnce sent and 
+	// construct the resultant StateTransitions from this information and return a vector of all the 
+	// StateTransitions
+	fn process_trace(&mut self, corpus_trace: Vec<Vec<(Message<P>, Response)>>) -> Vec<StateTransition<P::ServerState, P>> {
+	    let mut state_transitions: Vec<StateTransition<P::ServerState, P>> = Vec::new();
+
+	    for interaction_history in corpus_trace {
+	        // Option is used here to represent the possibility of having
+	        // a server state or not since the previous state is unknown
+	        // at the beginning of an interaction history.
+	        let mut previous_server_state: Option<P::ServerState> = None;
+
+	        for (message, response) in interaction_history {
+	            let target_state: P::ServerState = self.protocol.parse_response(&response);
+	            
+	            // If previous_server_state is not None, then we can initialize
+	            // an instance of StateTransition as we have every field's value
+	            if let Some(source_state) = previous_server_state {
+	                let state_transition = StateTransition {
+	                    source_state,
+	                    message: message.clone(),
+	                    target_state: target_state.clone(),
+	                };
+	                state_transitions.push(state_transition);
+	            }
+
+	            // The server state prompted by the current message,
+	            // i.e, target_state is the next message's previous_server_state
+	            previous_server_state = Some(target_state);
+	        }
+	    }
+
+	    return state_transitions;
+	}
+
+	// Go through each StateTransition in the processed trace and use them to update state_model
+    fn update_state_model(&mut self, state_transitions: Vec<StateTransition<P::ServerState, P>>) {
+        for transition in state_transitions {
+            self.state_model.add(transition.source_state.clone(), transition.target_state.clone(), &transition.message);
+        }
+    }
 
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 

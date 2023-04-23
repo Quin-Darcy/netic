@@ -23,18 +23,18 @@ impl<T: Protocol + PartialEq> StateModel<T> {
     }
 
     // This method is used to add a StateTransition to the StateModel
-    pub fn add(&mut self, current_state: T::ServerState, next_state: T::ServerState, message: &Message<T>) {
+    pub fn add(&mut self, source_state: T::ServerState, target_state: T::ServerState, message: &Message<T>) {
     	// This line retreives the transitions associated with the current_state
     	// If there are no transistions associated to current_state, a Vec::new() 
     	// is inserted in its place
         let transitions = self
             .inner
-            .entry(current_state.clone())
+            .entry(source_state.clone())
             .or_insert_with(Vec::new);
 
         let new_transition = StateTransition {
-            current_state: current_state.clone(),
-            next_state: next_state.clone(),
+            source_state: source_state.clone(),
+            target_state: target_state.clone(),
             message: message.clone(),
         };
 
@@ -42,7 +42,7 @@ impl<T: Protocol + PartialEq> StateModel<T> {
         // the same next_state, current_state, and message as new_transition. If there is
         // no duplicate transition, then new_transition is added to the transitions vector
         if !transitions.iter().any(|t| {
-            t.next_state == next_state && t.current_state == current_state && t.message == *message
+            t.target_state == target_state && t.source_state == source_state && t.message == *message
         }) {
             transitions.push(new_transition);
         }
