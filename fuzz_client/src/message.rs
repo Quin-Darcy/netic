@@ -74,7 +74,7 @@ impl<P: Protocol> PartialEq for Message<P> {
     }
 }
 
-impl<P: Protocol> Clone for Message<P> {
+impl<P: Protocol + Clone> Clone for Message<P> {
     fn clone(&self) -> Self {
         Self {
         	protocol: self.protocol.clone(),

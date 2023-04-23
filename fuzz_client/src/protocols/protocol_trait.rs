@@ -11,9 +11,9 @@ use crate::Response;
 
 // The Protocol trait is a common interface which defines a set of shared behavior 
 // across all types which have an implementation of the Prtotocol trait
-pub trait Protocol: Sized + Clone {
+pub trait Protocol: Sized+Clone {
 	type MessageType: PartialEq + Clone;
-	type MessageSectionsKey: Eq + Hash + Clone;
+	type MessageSectionsKey: PartialEq + Eq + Hash + Clone;
 	type MessageSectionsValue: PartialEq + Clone;
 
 	type ServerState: Clone + Eq + PartialEq + Hash;

@@ -9,7 +9,7 @@ pub struct MessageSequence<P: Protocol> {
     pub fitness: f32,
 }
 
-impl<P: Protocol + Clone> MessageSequence<P> {
+impl<P: Protocol> MessageSequence<P> {
     pub fn new() -> Self {
         Self {
             messages: Vec::new(),
@@ -43,6 +43,24 @@ impl<P: Protocol + Clone> MessageSequence<P> {
             messages,
             timings,
             fitness: 0.0,
+        }
+    }
+}
+
+impl<P: Protocol> PartialEq for MessageSequence<P> {
+    fn eq(&self, other: &Self) -> bool {
+        self.messages == other.messages
+            && self.timings == other.timings
+            && self.fitness == other.fitness
+    }
+}
+
+impl<P: Protocol> Clone for MessageSequence<P> {
+    fn clone(&self) -> Self {
+        Self {
+            messages: self.messages.clone(),
+            timings: self.timings.clone(),
+            fitness: self.fitness.clone(),
         }
     }
 }

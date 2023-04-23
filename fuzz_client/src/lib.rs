@@ -15,3 +15,4 @@ pub use client::Client;
 pub use response::Response;
 pub use state_transition::StateTransition;
 pub use state_model::StateModel;
+pub use client::FuzzConfig;
