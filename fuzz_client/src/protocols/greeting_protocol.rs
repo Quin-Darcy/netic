@@ -115,21 +115,40 @@ impl Protocol for GreetingProtocol {
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
 	    const MIN_MESSAGE_LENGTH: usize = 12;
 
-	    // Logic to build a message whose format is defined by GreetingProtocol
-	    if message_bytes.len() < MIN_MESSAGE_LENGTH {
-	        panic!("Error parsing raw message data");
-	    }
+	    // If the given byte array is too short, this adds a padding of 
+	    // zeros to the end of the byte array to make up the difference
+	    let message_bytes = if message_bytes.len() < MIN_MESSAGE_LENGTH {
+	        let mut padded_message = message_bytes.to_vec();
+	        let padding_len = MIN_MESSAGE_LENGTH - message_bytes.len();
+	        padded_message.extend(std::iter::repeat(0).take(padding_len));
+	        padded_message
+	    } else {
+	        message_bytes.to_vec()
+	    };
 
 	    let (header, remaining) = message_bytes.split_at(4);
 	    let header = header.to_vec();
 	    let (length, payload) = remaining.split_at(8);
 	    let length: u64 = u64::from_be_bytes(length.try_into().unwrap());
 
-	    let message_type = match std::str::from_utf8(payload) {
+	    let payload_str = std::str::from_utf8(payload);
+
+	    // If the payload does not match any of the standard payloads, 
+	    // a random MessageType is selected
+	    let message_type = match payload_str {
 	        Ok("Hello!\n") => GreetingMessageType::Hello,
 	        Ok("What time is it?\n") => GreetingMessageType::TimeRequest,
 	        Ok("Goodbye!\n") => GreetingMessageType::Goodbye,
-	        _ => panic!("Unexpected payload: {:?}", payload),
+	        _ => {
+	            let mut rng = rand::thread_rng();
+	            let random_type = rng.gen_range(0..3);
+	            match random_type {
+	                0 => GreetingMessageType::Hello,
+	                1 => GreetingMessageType::TimeRequest,
+	                2 => GreetingMessageType::Goodbye,
+	                _ => unreachable!(),
+	            }
+	        }
 	    };
 
 	    let header_array: [u8; 4] = header.clone().try_into().expect("Header has incorrect length");
@@ -207,28 +226,47 @@ fn mutate_bytes(message: &Message<GreetingProtocol>) -> Message<GreetingProtocol
 	let mut rng = rand::thread_rng();
 	let mutation_type = rng.gen_range(0..5);
 
-	let mut mutated_message = message.clone();
+	let mut mutated_data = message.data.clone();
+	let mutated_message: Message<GreetingProtocol>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of GreetingProtocol
+	let protocol_instance = GreetingProtocol;
 
 	match mutation_type {
 		0 => {
 			// Byte substitution
-			todo!();
+			let byte_index = rng.gen_range(0..mutated_data.len());
+			let random_byte = rand::random::<u8>();
+			mutated_data[byte_index] = random_byte;
 		}
 		1 => {
 			// Byte insertion
-			todo!();
+			let byte_index = rng.gen_range(0..=mutated_data.len());
+			let random_byte = rand::random::<u8>();
+			mutated_data.insert(byte_index, random_byte);
 		}
 		2 => {
 			// Byte deletion
-			todo!();
+			if !mutated_data.is_empty() {
+				let byte_index = rng.gen_range(0..mutated_data.len());
+				mutated_data.remove(byte_index);
+			}
 		}
 		3 => {
 			// Byte swap
-			todo!();
+			let byte_index1 = rng.gen_range(0..mutated_data.len());
+			let byte_index2 = rng.gen_range(0..mutated_data.len());
+
+			let temp_byte = mutated_data[byte_index1];
+			mutated_data[byte_index1] = mutated_data[byte_index2];
+			mutated_data[byte_index2] = temp_byte;
 		}
 		_ => {}
 	}
 
+	// Build new message from mutated_data
+	mutated_message = protocol_instance.build_message(&mutated_data);
 	return mutated_message;
 }
 
@@ -236,24 +274,73 @@ fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProto
 	let mut rng = rand::thread_rng();
 	let mutation_type = rng.gen_range(0..3);
 
-	let mutated_message = message.clone();
+	let mut mutated_sections = message.sections.clone();
+	let mutated_message: Message<GreetingProtocol>;
+	
+	// This instance is needed to access the methods within the Protocol implementation
+	// of GreetingProtocol
+	let protocol_instance = GreetingProtocol;
 
 	match mutation_type {
 		0 => {
 			// Header swap
-			todo!();
+			let header_choice = rng.gen_range(0..3);
+
+			match header_choice {
+				0 => {
+					mutated_sections.insert(
+	        			GreetingMessageSectionsKey::Header,
+	        			GreetingMessageSectionsValue { header: [0x48, 0x45, 0x4C, 0x4F], ..Default::default() },
+	    			);
+				}
+				1 => {
+					mutated_sections.insert(
+	        			GreetingMessageSectionsKey::Header,
+	        			GreetingMessageSectionsValue { header: [0x54, 0x49, 0x4D, 0x45], ..Default::default() },
+	    			);
+				}
+				2 => {
+					mutated_sections.insert(
+	        			GreetingMessageSectionsKey::Header,
+	        			GreetingMessageSectionsValue { header: [0x42, 0x59, 0x45, 0x5F], ..Default::default() },
+	    			);
+				}
+				_ => {}
+			}
 		}
 		1 => {
 			// Invalidate payload length
-			todo!();
+			let payload_length = mutated_sections.get(&GreetingMessageSectionsKey::Length).unwrap().length;
+			let multiplier = rng.gen_range(2..10) as u64;
+			let new_payload_length = multiplier * payload_length;
+			mutated_sections.insert(
+				GreetingMessageSectionsKey::Length,
+				GreetingMessageSectionsValue{ length: new_payload_length, ..Default::default() },
+			);
 		}
 		2 => {
-			// Insert or replace random bytes into payload
-			todo!();
+			// Replace random byte into payload
+			let mut payload = mutated_sections.get(&GreetingMessageSectionsKey::Payload).unwrap().payload.clone();
+			let byte_index = rng.gen_range(0..payload.len());
+			let random_byte = rand::random::<u8>();
+			payload[byte_index] = random_byte;
+			
+			mutated_sections.insert(
+				GreetingMessageSectionsKey::Payload,
+				GreetingMessageSectionsValue { payload: payload, ..Default::default() }
+			);
 		}
 		_ => {}
 	}
 
+	// Build new message from mutated sections
+    let header = mutated_sections.get(&GreetingMessageSectionsKey::Header).unwrap().header;
+    let length = mutated_sections.get(&GreetingMessageSectionsKey::Length).unwrap().length.to_be_bytes();
+    let payload = &mutated_sections.get(&GreetingMessageSectionsKey::Payload).unwrap().payload;
+
+    let new_data: Vec<u8> = [&header[..], &length[..], payload].concat();
+
+    mutated_message = protocol_instance.build_message(&new_data);
 	return mutated_message;
 }
 
