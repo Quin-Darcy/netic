@@ -303,52 +303,6 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    }
 	}
 
-	fn evolve_generation(
-	    &mut self,
-	    corpus: &[MessageSequence<P>],
-	    config: &FuzzConfig,
-	) -> Vec<MessageSequence<P>> {
-	    let num_parents: usize = corpus.len();
-	    let tournament_size: usize = (config.selection_pressure * (corpus.len() as f32)) as usize;
-	    let mating_pool: Vec<usize> = self.tournament_selection(tournament_size, num_parents);
-
-	    let mut new_generation: Vec<MessageSequence<P>> = Vec::new();
-	    let mut rng = rand::thread_rng();
-
-	    // Apply crossover and mutation to create the next generation
-	    for i in (0..mating_pool.len()).step_by(2) {
-	        let parent1 = &corpus[mating_pool[i]].clone();
-	        let parent2 = &corpus[mating_pool[i + 1]].clone();
-
-	        let should_sequence_crossover = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
-
-	        let (mut child1, mut child2) = if should_sequence_crossover {
-	            self.crossover(parent1, parent2, config.message_crossover_rate)
-	        } else {
-	            (parent1.clone(), parent2.clone())
-	        };
-
-	        let should_sequence_mutate1 = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
-	        let should_sequence_mutate2 = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
-
-	        if should_sequence_mutate1 {
-	            child1.mutate(&mut self.message_pool);
-	        }
-
-	        if should_sequence_mutate2 {
-	            child2.mutate(&mut self.message_pool);
-	        }
-
-	        self.mutate(&mut child1, &mut child2, config.message_mutation_rate);
-
-	        new_generation.push(child1);
-	        new_generation.push(child2);
-	    }
-
-	    new_generation
-	}
-
-
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 
 		for _ in 0..config.generations {
@@ -389,6 +343,8 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         						  config.state_coverage_weight, config.state_roc_weight, config.state_rarity_weight);
 			
 			self.corpus = corpus_clone.to_vec();
+
+			// Evolve generation here
 		}
 	}
 }
