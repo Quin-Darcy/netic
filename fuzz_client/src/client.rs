@@ -161,6 +161,46 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         }
     }
 
+    // Go through each MessageSequence within the corpus and mutate it according to the mutation rate
+    fn mutate_corpus(&mut self, message_sequence_mutation_rate: f32, message_mutation_rate: f32) {
+        let mut rng = rand::thread_rng();
+
+        for message_sequence in &mut self.corpus {
+            if rng.gen::<f32>() < message_sequence_mutation_rate {
+                message_sequence.mutate_message_sequence(self.protocol.clone(), message_mutation_rate, &self.message_pool);
+            }
+        }
+    }
+
+    // Perform crossover on the MessageSequences within corpus
+    pub fn crossover_corpus(&mut self, message_sequence_crossover_rate: f32, message_crossover_rate: f32) {
+        let mut rng = rand::thread_rng();
+        let corpus_len = self.corpus.len();
+        
+        // Pairs of indices to perform crossover on
+        let mut crossover_pairs: Vec<(usize, usize)> = Vec::new();
+
+        // This loop iterates over all i, j in {0,...,corpus_len} such that i < j effectively collecting 
+        // all unique ordered pairs to be formed irrespective of ordering in the components
+        for i in 0..corpus_len {
+            for j in i + 1..corpus_len {
+                if rng.gen::<f32>() < message_sequence_crossover_rate {
+                    crossover_pairs.push((i, j));
+                }
+            }
+        }
+
+        // Here we replace the parents in the corpus with their two offspring
+        for (idx1, idx2) in crossover_pairs {
+        	let mut parent1 = self.corpus[idx1].clone();
+        	let parent2 = self.corpus[idx2].clone();
+
+            let (offspring1, offspring2) = parent1.crossover_message_sequences(&parent2, message_crossover_rate);
+            self.corpus[idx1] = offspring1;
+            self.corpus[idx2] = offspring2;
+        }
+    }
+
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 
 		for _ in 0..config.generations {
