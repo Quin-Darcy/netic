@@ -209,7 +209,7 @@ impl Protocol for GreetingProtocol {
 		}
 	}
 
-	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>) {
+	fn crossover_messages(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>) {
 		// Randomly choose between byte-level or section-level crossover
 		let mut rng = rand::thread_rng();
 		let crossover_level = rng.gen_range(0..2);
@@ -371,11 +371,9 @@ fn crossover_bytes(message1: &Message<GreetingProtocol>, message2: &Message<Gree
 	let mut big_offspring_data = big_parent_data.clone();
 
 	// This loop cross transplants the regions defined by the two crossover points
-	for i in 0..max_len {
-		if i >= crossover_point1 && i <= crossover_point2 {
-			small_offspring_data[i] = big_parent_data[i];
-			big_offspring_data[i] = small_parent_data[i];
-		}
+	for i in crossover_point1..=crossover_point2 {
+		small_offspring_data[i] = big_parent_data[i];
+		big_offspring_data[i] = small_parent_data[i];
 	} 
 
 	let offspring1 = protocol_instance.build_message(&small_offspring_data);

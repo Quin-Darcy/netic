@@ -38,7 +38,7 @@ pub trait Protocol: Sized+Clone {
 	fn random_message(&self) -> Message<Self>;
 	fn build_message(&self, message_bytes: &[u8]) -> Message<Self>;
 	fn mutate_message(&self, message: &Message<Self>) -> Message<Self>;
-	fn crossover_message(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>);
+	fn crossover_messages(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>);
 
 	fn parse_response(&self, response: &Response) -> Self::ServerState;
 }

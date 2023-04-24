@@ -61,8 +61,8 @@ impl<P: Protocol> Message<P> {
 		self.sections = mutated_message.sections;
 	}
 
-	pub fn crossover_message(&self, other: &Self) -> (Self, Self) {
-		self.protocol.crossover_message(self, other)
+	pub fn crossover_messages(&self, other: &Self) -> (Self, Self) {
+		self.protocol.crossover_messages(self, other)
 	}
 }
 
