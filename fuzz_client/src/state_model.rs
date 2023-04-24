@@ -12,7 +12,7 @@ use crate::Message;
 // which has an implementation of the Protocol trait, also has definitions of the associated types in the 
 // Protocol trait. The one in use here being ServerState.
 pub struct StateModel<T: Protocol> {
-    inner: HashMap<T::ServerState, Vec<StateTransition<T::ServerState, T>>>,
+    pub inner: HashMap<T::ServerState, Vec<StateTransition<T::ServerState, T>>>,
 }
 
 impl<T: Protocol + PartialEq> StateModel<T> {
@@ -46,5 +46,10 @@ impl<T: Protocol + PartialEq> StateModel<T> {
         }) {
             transitions.push(new_transition);
         }
+    }
+
+    // Returns the number of unique ServerStates visited
+    pub fn count_unique_server_states(&self) -> usize {
+        self.inner.len()
     }
 }
