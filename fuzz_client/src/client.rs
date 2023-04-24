@@ -127,7 +127,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	// Take the interection history (Vec<Message<P>, Response)>) of each MessageSequnce sent and 
 	// construct the resultant StateTransitions from this information and return a vector of all the 
 	// StateTransitions
-	fn process_trace(&mut self, corpus_trace: Vec<Vec<(Message<P>, Response)>>) -> (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) {
+	fn process_trace(&mut self, corpus_trace: &[Vec<(Message<P>, Response)>]) -> (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) {
 	    let mut state_transitions: Vec<StateTransition<P::ServerState, P>> = Vec::new();
 
 	    // This vector will contain a count of the unique ServerStates prompted by each MessageSequence
@@ -303,6 +303,52 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    }
 	}
 
+	fn evolve_generation(
+	    &mut self,
+	    corpus: &[MessageSequence<P>],
+	    config: &FuzzConfig,
+	) -> Vec<MessageSequence<P>> {
+	    let num_parents: usize = corpus.len();
+	    let tournament_size: usize = (config.selection_pressure * (corpus.len() as f32)) as usize;
+	    let mating_pool: Vec<usize> = self.tournament_selection(tournament_size, num_parents);
+
+	    let mut new_generation: Vec<MessageSequence<P>> = Vec::new();
+	    let mut rng = rand::thread_rng();
+
+	    // Apply crossover and mutation to create the next generation
+	    for i in (0..mating_pool.len()).step_by(2) {
+	        let parent1 = &corpus[mating_pool[i]].clone();
+	        let parent2 = &corpus[mating_pool[i + 1]].clone();
+
+	        let should_sequence_crossover = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
+
+	        let (mut child1, mut child2) = if should_sequence_crossover {
+	            self.crossover(parent1, parent2, config.message_crossover_rate)
+	        } else {
+	            (parent1.clone(), parent2.clone())
+	        };
+
+	        let should_sequence_mutate1 = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
+	        let should_sequence_mutate2 = rng.gen_range(0.0..1.0) < config.sequence_mutation_rate;
+
+	        if should_sequence_mutate1 {
+	            child1.mutate(&mut self.message_pool);
+	        }
+
+	        if should_sequence_mutate2 {
+	            child2.mutate(&mut self.message_pool);
+	        }
+
+	        self.mutate(&mut child1, &mut child2, config.message_mutation_rate);
+
+	        new_generation.push(child1);
+	        new_generation.push(child2);
+	    }
+
+	    new_generation
+	}
+
+
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 
 		for _ in 0..config.generations {
@@ -331,11 +377,18 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			}
 
 			// Process the the corpus_trace to get the ServerStates needed to update the StateModel
-			let (state_transitions, unique_server_states_visited): (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) = self.process_trace(corpus_trace);
+			let (state_transitions, unique_server_states_visited): (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) = self.process_trace(&corpus_trace[..]);
 			self.update_state_model(state_transitions);
 
 			// Identify rare server states
         	let rare_server_states = self.identify_rare_server_states(config.state_rarity_threshold);
+
+        	// Compute fitness of each MessageSequence in the corpus
+        	let mut corpus_clone = self.corpus.clone();
+        	self.evaluate_fitness(&mut corpus_clone, &corpus_trace, &unique_server_states_visited, &rare_server_states, 
+        						  config.state_coverage_weight, config.state_roc_weight, config.state_rarity_weight);
+			
+			self.corpus = corpus_clone.to_vec();
 		}
 	}
 }
