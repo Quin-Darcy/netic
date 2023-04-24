@@ -37,7 +37,7 @@ pub struct FuzzConfig {
 	pub pool_update_rate: f32,
 	pub state_rarity_threshold: f32,
 	pub state_coverage_weight: f32,
-	pub state_jump_efficiency_weight: f32,
+	pub state_roc_weight: f32,
 	pub state_rarity_weight: f32,
 }
 
@@ -259,38 +259,44 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    rare_server_states
 	}
 
-	// Returns the proportion of unique ServerStates prompted by an individual MessageSequence out of 
-	// all unique ServerStates vistted throughout the running of the program
-	fn calculate_coverage_score(&self, unique_server_states: usize) -> f32 {
-	    let total_unique_server_states_visited = self.state_model.count_unique_server_states();
-	    unique_server_states as f32 / total_unique_server_states_visited as f32
-	}
-
-	fn calculate_efficiency_score(&mut self, messages: &Vec<Message<P>>) -> f32 {
-		todo!();
-	}
-
-	fn calculate_rarity_score(&mut self, messages: &Vec<Message<P>>, rare_server_states: &HashSet<P::ServerState>) -> f32 {
-		todo!();
-	} 
-
 	fn evaluate_fitness(
 		&mut self, 
 		corpus: &mut Vec<MessageSequence<P>>, 
+		corpus_trace: &Vec<Vec<(Message<P>, Response)>>,
 		unique_server_states_visited: &[usize], 
 		rare_server_states: &HashSet<P::ServerState>,
 		state_coverage_weight: f32,
-		state_jump_efficiency_weight: f32,
+		state_roc_weight: f32,
 		state_rarity_weight: f32,
 		) {
+
+		let total_unique_states = self.state_model.count_unique_server_states();
+
 	    for (i, message_sequence) in corpus.iter_mut().enumerate() {
-	        let coverage_score = self.calculate_coverage_score(unique_server_states_visited[i]);
-	        let efficiency_score = self.calculate_efficiency_score(&message_sequence.messages);
-	        let rarity_score = self.calculate_rarity_score(&message_sequence.messages, rare_server_states);
+	    	// The proportion of unique ServerStates prompted by an individual MessageSequence out of 
+			// all unique ServerStates vistted throughout the running of the program. This evaluates how well
+			// the MessageSequence contributes to exploring the entire state space of the server
+	        let coverage_score = unique_server_states_visited[i] as f32 / total_unique_states as f32;
+
+	        // The proportion of unique ServerStates visited during the course of a single MessageSequence.
+	        // This evaluates how well the message sequence is at trodding a productive path through the state space
+	        let rate_of_change_score = unique_server_states_visited[i] as f32 / message_sequence.messages.len() as f32;
+
+ 			// Of the ServerStates prompted by the MessageSequence, the proportion of them which can be found
+ 			// in rare_server_states is the rarity_score. This evaluates how effective the message sequence is 
+ 			// at getting the server into rare states
+	        let mut rare_states_count = 0;
+	        for (message, response) in &corpus_trace[i] {
+	            let target_state = self.protocol.parse_response(&response);
+	            if rare_server_states.contains(&target_state) {
+	                rare_states_count += 1;
+	            }
+	        }
+	        let rarity_score = rare_states_count as f32 / corpus_trace[i].len() as f32;
 
 	        // Combine the three scores with their respective weights to compute the final fitness
 	        let fitness = coverage_score * state_coverage_weight
-	            + efficiency_score * state_jump_efficiency_weight
+	            + rate_of_change_score * state_roc_weight
 	            + rarity_score * state_rarity_weight;
 
 	        message_sequence.fitness = fitness;
