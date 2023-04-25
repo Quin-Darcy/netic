@@ -53,9 +53,9 @@ pub struct Client<P: Protocol + Clone + PartialEq> {
 impl<P: Protocol + Clone + PartialEq> Client<P> {
     // Initialize new client with random corpus and message_pool
     pub fn new(server_address: String, protocol: P) -> Self {
-        const MESSAGE_SEQUENCE_LENGTH: usize = 10;
+        const MESSAGE_SEQUENCE_LENGTH: usize = 6;
         const MESSAGE_POOL_LENGTH: usize = 10;
-        const INITIAL_CORPUS_LENGTH: usize = 10;
+        const INITIAL_CORPUS_LENGTH: usize = 5;
 
         let mut corpus = Vec::new();
         for _ in 0..INITIAL_CORPUS_LENGTH {
@@ -365,11 +365,21 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    self.mutate_corpus(sequence_mutation_rate, message_mutation_rate);
 	}
 
+	fn display_average_fitness(&mut self) {
+		let mut average_fitness: f32 = 0.0;
+
+		for i in 0..self.corpus.len() {
+			average_fitness += self.corpus[i].fitness;
+		}
+
+		average_fitness = average_fitness / self.corpus.len() as f32;
+		println!("    AVERAGE FITNESS: {:?}", average_fitness);
+	}
 
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 
 		for j in 0..config.generations {
-			println!("GENERATION: {}", j);
+			println!("GENERATION {}", j);
 
 			let corpus_len: usize = self.corpus.len();
 			let mut message_sequence: MessageSequence<P>;
@@ -379,15 +389,10 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			let mut rng = rand::thread_rng();
 
 			for i in 0..corpus_len {
-				println!("    RUNNING MESSAGE_SEQUENCE: {}", i);
-
 				message_sequence = self.corpus[i].clone();
-
 				interaction_history = self.run_message_sequence(&message_sequence);
 				corpus_trace.push(interaction_history);
 
-
-				println!("    UPDATING MESSAGE_POOL");
 		        // Update message_pool with a random message from the current message_sequence at the defined rate
     			if rng.gen_range(0.0..1.0) < config.pool_update_rate {
     				if self.message_pool.len() == config.message_pool_size {
@@ -400,18 +405,13 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
     			}
 			}
 
-			println!("    PROCESSING TRACE");
 			// Process the the corpus_trace to get the ServerStates needed to update the StateModel
 			let (state_transitions, unique_server_states_visited): (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) = self.process_trace(&corpus_trace[..]);
-			
-			println!("    UPDATING STATEMODEL");
 			self.update_state_model(state_transitions);
 
-			println!("    IDENTIFYING RARE SERVER STATES");
 			// Identify rare server states
         	let rare_server_states = self.identify_rare_server_states(config.state_rarity_threshold);
 
-        	println!("    EVALUATING FITNESS");
         	// Compute fitness of each MessageSequence in the corpus
         	let mut corpus_clone = self.corpus.clone();
         	self.evaluate_fitness(&mut corpus_clone, &corpus_trace, &unique_server_states_visited, &rare_server_states, 
@@ -419,12 +419,12 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			
 			self.corpus = corpus_clone.to_vec();
 
-			println!("    PERFORMING TOURNAMENT SELECTION");
 			// The mating_pool contains all the MessageSequences from the corpus which selected amongst
 			// the tournaments run. This represents the pre-mutated and pre-crossed over new generation
 			let mating_pool: Vec<usize> = self.tournament_selection(config.selection_pressure);
 
-			println!("    CREATING NEW GENERATION");
+			self.display_average_fitness();
+
 			// Apply crossover and mutation on the corpus to create the new generation
 			self.create_new_generation(&mating_pool, config.sequence_crossover_rate, config.sequence_mutation_rate, 
 									   config.message_crossover_rate, config.message_mutation_rate);
