@@ -142,8 +142,11 @@ impl<P: Protocol> MessageSequence<P> {
             small_offspring.messages[i] = big_parent.messages[i].clone();
             big_offspring.messages[i] = small_parent.messages[i].clone();
 
-            small_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
-            big_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
+            // Since the timings vector is always one less than the length of the MessageSequence
+            if i < crossover_point2 {
+                small_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
+                big_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
+            }
         }
 
         // Perform crossover on individual messages based on the message_crossover_rate
