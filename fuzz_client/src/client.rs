@@ -179,46 +179,6 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         }
     }
 
-    // Go through each MessageSequence within the corpus and mutate it according to the mutation rate
-    fn mutate_corpus(&mut self, message_sequence_mutation_rate: f32, message_mutation_rate: f32) {
-        let mut rng = rand::thread_rng();
-
-        for message_sequence in &mut self.corpus {
-            if rng.gen::<f32>() < message_sequence_mutation_rate {
-                message_sequence.mutate_message_sequence(self.protocol.clone(), message_mutation_rate, &self.message_pool);
-            }
-        }
-    }
-
-    // Perform crossover on the MessageSequences within corpus
-    fn crossover_corpus(&mut self, message_sequence_crossover_rate: f32, message_crossover_rate: f32) {
-        let mut rng = rand::thread_rng();
-        let corpus_len = self.corpus.len();
-        
-        // Pairs of indices to perform crossover on
-        let mut crossover_pairs: Vec<(usize, usize)> = Vec::new();
-
-        // This loop iterates over all i, j in {0,...,corpus_len} such that i < j effectively collecting 
-        // all unique ordered pairs to be formed irrespective of ordering in the components
-        for i in 0..corpus_len {
-            for j in i + 1..corpus_len {
-                if rng.gen::<f32>() < message_sequence_crossover_rate {
-                    crossover_pairs.push((i, j));
-                }
-            }
-        }
-
-        // Here we replace the parents in the corpus with their two offspring
-        for (idx1, idx2) in crossover_pairs {
-        	let mut parent1 = self.corpus[idx1].clone();
-        	let parent2 = self.corpus[idx2].clone();
-
-            let (offspring1, offspring2) = parent1.crossover_message_sequences(&parent2, message_crossover_rate);
-            self.corpus[idx1] = offspring1;
-            self.corpus[idx2] = offspring2;
-        }
-    }
-
     // This method aims to identify "rare" ServerStates, which are the states that occur less frequently
     // in the StateModel based on the given rarity_threshold which is to denote a percentage.
 	fn identify_rare_server_states(&self, rarity_threshold: f32) -> HashSet<P::ServerState> {
@@ -257,6 +217,49 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    }
 
 	    rare_server_states
+	}
+
+	fn tournament_selection(&self, selection_pressure: f32) -> Vec<usize> {
+		// Selection pressure determines the tournament size
+		// The higher the pressure, the more biased the selection process
+		// is to selecting fitter individuals
+		let num_parents: usize = self.corpus.len();
+		let tournament_size: usize = (selection_pressure * (self.corpus.len() as f32)) as usize;
+
+		let mut rng = thread_rng();
+    	let mut selected_indices: Vec<usize> = Vec::new();
+
+    	// Each tournament gives back one "winner" who will be inserted into the mating pool. 
+    	// The number of tournaments run will be equal to the size of the resulting mating pool.
+    	for _ in 0..num_parents {
+        	let mut tournament: Vec<usize> = (0..self.corpus.len()).collect();
+
+        	// Randomize the ordering of the tournament vector which contains the indices of 
+        	// the MessageSequences in the corpus. Then truncate the tournament down to tournament_size
+        	tournament.shuffle(&mut rng);
+        	tournament.truncate(tournament_size);
+
+	        // Initialize a best index and best fitness
+	        let mut best_index: usize = tournament[0];
+	        let mut best_fitness: f32 = self.corpus[best_index].fitness;
+
+	        // Loop through the indices in the tournament and compare the best
+	        // index to all other indices but skip the first to avoid
+	        // comparing the initialized best index to itself
+	        for &index in tournament.iter().skip(1) {
+	        	let fitness: f32 = self.corpus[index].fitness;
+
+	            	if fitness > best_fitness {
+	                	best_fitness = fitness;
+	                	best_index = index;
+	            	}
+	        }
+
+	        // Store the winner of the tournament
+	        selected_indices.push(best_index);
+		}
+
+		return selected_indices;
 	}
 
 	fn evaluate_fitness(
@@ -303,9 +306,71 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    }
 	}
 
+    // Go through each MessageSequence within the corpus and mutate it according to the mutation rate
+    fn mutate_corpus(&mut self, message_sequence_mutation_rate: f32, message_mutation_rate: f32) {
+        let mut rng = rand::thread_rng();
+
+        for message_sequence in &mut self.corpus {
+            if rng.gen::<f32>() < message_sequence_mutation_rate {
+                message_sequence.mutate_message_sequence(self.protocol.clone(), message_mutation_rate, &self.message_pool);
+            }
+        }
+    }
+
+    // Perform crossover on the MessageSequences within corpus
+    fn crossover_corpus(&mut self, message_sequence_crossover_rate: f32, message_crossover_rate: f32) {
+        let mut rng = rand::thread_rng();
+        let corpus_len = self.corpus.len();
+        
+        // Pairs of indices to perform crossover on
+        let mut crossover_pairs: Vec<(usize, usize)> = Vec::new();
+
+        // This loop iterates over all i, j in {0,...,corpus_len} such that i < j effectively collecting 
+        // all unique ordered pairs to be formed irrespective of ordering in the components
+        for i in 0..corpus_len {
+            for j in i + 1..corpus_len {
+                if rng.gen::<f32>() < message_sequence_crossover_rate {
+                    crossover_pairs.push((i, j));
+                }
+            }
+        }
+
+        // Here we replace the parents in the corpus with their two offspring
+        for (idx1, idx2) in crossover_pairs {
+        	let mut parent1 = self.corpus[idx1].clone();
+        	let parent2 = self.corpus[idx2].clone();
+
+            let (offspring1, offspring2) = parent1.crossover_message_sequences(&parent2, message_crossover_rate);
+            self.corpus[idx1] = offspring1;
+            self.corpus[idx2] = offspring2;
+        }
+    }
+
+	fn create_new_generation(
+		&mut self, 
+		mating_pool: &[usize], 
+		sequence_crossover_rate: f32, 
+		sequence_mutation_rate: f32, 
+		message_crossover_rate: f32, 
+		message_mutation_rate: f32
+		) {
+
+	    // Update the corpus by cloning the selected individuals from the mating pool
+	    self.corpus = mating_pool.iter().map(|&idx| self.corpus[idx].clone()).collect();
+
+	    // Perform crossover on the MessageSequences within the new generation
+	    self.crossover_corpus(sequence_crossover_rate, message_crossover_rate);
+
+	    // Go through each MessageSequence within the new generation and mutate it according to the mutation rates
+	    self.mutate_corpus(sequence_mutation_rate, message_mutation_rate);
+	}
+
+
 	pub fn fuzz(&mut self, config: FuzzConfig) {
 
-		for _ in 0..config.generations {
+		for j in 0..config.generations {
+			println!("GENERATION: {}", j);
+
 			let corpus_len: usize = self.corpus.len();
 			let mut message_sequence: MessageSequence<P>;
 			let mut interaction_history: Vec<(Message<P>, Response)>;
@@ -314,10 +379,15 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			let mut rng = rand::thread_rng();
 
 			for i in 0..corpus_len {
+				println!("    RUNNING MESSAGE_SEQUENCE: {}", i);
+
 				message_sequence = self.corpus[i].clone();
+
 				interaction_history = self.run_message_sequence(&message_sequence);
 				corpus_trace.push(interaction_history);
 
+
+				println!("    UPDATING MESSAGE_POOL");
 		        // Update message_pool with a random message from the current message_sequence at the defined rate
     			if rng.gen_range(0.0..1.0) < config.pool_update_rate {
     				if self.message_pool.len() == config.message_pool_size {
@@ -330,13 +400,18 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
     			}
 			}
 
+			println!("    PROCESSING TRACE");
 			// Process the the corpus_trace to get the ServerStates needed to update the StateModel
 			let (state_transitions, unique_server_states_visited): (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) = self.process_trace(&corpus_trace[..]);
+			
+			println!("    UPDATING STATEMODEL");
 			self.update_state_model(state_transitions);
 
+			println!("    IDENTIFYING RARE SERVER STATES");
 			// Identify rare server states
         	let rare_server_states = self.identify_rare_server_states(config.state_rarity_threshold);
 
+        	println!("    EVALUATING FITNESS");
         	// Compute fitness of each MessageSequence in the corpus
         	let mut corpus_clone = self.corpus.clone();
         	self.evaluate_fitness(&mut corpus_clone, &corpus_trace, &unique_server_states_visited, &rare_server_states, 
@@ -344,7 +419,15 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			
 			self.corpus = corpus_clone.to_vec();
 
-			// Evolve generation here
+			println!("    PERFORMING TOURNAMENT SELECTION");
+			// The mating_pool contains all the MessageSequences from the corpus which selected amongst
+			// the tournaments run. This represents the pre-mutated and pre-crossed over new generation
+			let mating_pool: Vec<usize> = self.tournament_selection(config.selection_pressure);
+
+			println!("    CREATING NEW GENERATION");
+			// Apply crossover and mutation on the corpus to create the new generation
+			self.create_new_generation(&mating_pool, config.sequence_crossover_rate, config.sequence_mutation_rate, 
+									   config.message_crossover_rate, config.message_mutation_rate);
 		}
 	}
 }
