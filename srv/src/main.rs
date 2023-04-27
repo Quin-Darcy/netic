@@ -1,26 +1,11 @@
-#![allow(unused_imports)]
-
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
+use srv::StateMachine;
+use srv::Message;
 
-pub enum ServerState {
-    Idle,
-    Greeted,
-    Questioned,
-    Terminated,
-}
 
-pub enum ServerError {
-    InvalidPayloadLength, 
-    UnrecognizedHeader,
-    UnrecognizedPayload,
-    HeaderMismatch,
-    NonUTF8Sequence,
-    InvalidStateTransition,
-}
-
-fn receive_message(listener: &TcpListener) -> String {
+fn receive_message(listener: &TcpListener) -> Message {
     // Establish connection to the remote peer by calling accept() 
     let (mut stream, _) = listener.accept().unwrap();
 
@@ -30,17 +15,18 @@ fn receive_message(listener: &TcpListener) -> String {
     // Read the bytes from the stream into the buffer
     let bytes_read = stream.read(&mut buffer).unwrap();
 
-    // Convert the bytes read from the stream into an owned string
-    // If the byte sequence contains any invalid UTF-8 sequences, 
-    // they get replaced with the Unicode (U+FFFD) character.
-    String::from_utf8_lossy(&buffer[..bytes_read]).to_string()
+    // Return a new instance of Message from the bytes read from the stream
+    return Message::new(&buffer[..bytes_read]);
 }
 
 fn main () {
     // Start listener on server to await incoming connections
     let listener = TcpListener::bind("127.0.0.1:8888").unwrap();
 
+    // Create an instance of a StateMachine
+    let stae_machine = StateMachine::new();
+
     loop {
-        let message = receive_message(&listener);
+        let message: Message = receive_message(&listener);
     }
 }
