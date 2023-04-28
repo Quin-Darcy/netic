@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use crate::ServerError;
 
 
@@ -10,12 +13,12 @@ pub enum MessageType {
 }
 
 pub struct Message {
-	data: Vec<u8>,
+	pub data: Vec<u8>,
 	header: [u8; 4],
 	payload_length: u64,
 	payload: String,
-	message_type: MessageType,
-	parsing_results: Vec<ServerError>,
+	pub message_type: MessageType,
+	pub parsing_results: Vec<ServerError>,
 }
 
 impl Message {

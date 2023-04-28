@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
@@ -29,16 +33,40 @@ impl Server {
 
     pub fn run(&mut self) {
         loop {
-            let message = self.receive_message();
-            let response = self.state_machine.handle_message(&message, &self.state_transition_rules);
-            self.send_response(response);
+            // Establish connection to the remote by calling accept()
+            let (stream, _) = self.listener.accept().unwrap();
+
+            // Handle the client connection in a separate scope
+            {
+                let mut client_stream = stream;
+                loop {
+                    let message_result = self.receive_message(&mut client_stream);
+
+                    match message_result {
+                        Ok(message) => {
+                            println!("CLIENT: {}", String::from_utf8_lossy(&message.data));
+
+                            let response = self.state_machine.handle_message(&message, &self.state_transition_rules);
+
+                            println!("SERVER: {}", &response.response_string);
+
+                            // Check the result of send_response and break the loop if an error occurs
+                            if let Err(e) = self.send_response(&mut client_stream, &response) {
+                                eprintln!("Failed to write to client: {}", e);
+                                break;
+                            }
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to read from client: {}", e);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
-    fn receive_message(&mut self) -> Message {
-        // Establish connection to the remote peer by calling accept() 
-        let (mut stream, _) = self.listener.accept().unwrap();
-
+    fn receive_message(&mut self, mut stream: &TcpStream) -> Result<Message, std::io::Error> {
         // Create the buffer which will store the bytes read from the stream
         let mut buffer = [0; 1024];
 
@@ -46,10 +74,14 @@ impl Server {
         let bytes_read = stream.read(&mut buffer).unwrap();
 
         // Return a new instance of Message from the bytes read from the stream
-        return Message::new(&buffer[..bytes_read]);
+        Ok(Message::new(&buffer[..bytes_read]))
     }
 
-    fn send_response(&self, response: Response) {
-        todo!();
+    // Change the signature of the send_response method to return a Result<(), std::io::Error>
+    fn send_response(&self, mut stream: &TcpStream, response: &Response) -> std::io::Result<()> {
+        let response_string = response.response_string.clone();
+        stream.write(response_string.as_bytes())?;
+        stream.flush()?;
+        Ok(())
     }
 }

@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use std::collections::HashMap;
 
 use crate::Message;
@@ -13,6 +16,7 @@ pub enum ServerState {
     Terminated,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ServerError {
     InvalidPayloadLength, 
     UnrecognizedHeader,
@@ -62,6 +66,6 @@ impl StateMachine {
     }
 
     pub fn handle_message(&mut self, message: &Message, transition_rules: &StateTransitionRules) -> Response {
-        todo!();
+        Response::new(message, &self.current_state, transition_rules)
     }
 }
