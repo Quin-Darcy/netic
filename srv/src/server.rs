@@ -86,7 +86,7 @@ impl Server {
         Ok(Some(Message::new(&buffer[..bytes_read])))
     }
 
-    fn send_response(&self, mut stream: &TcpStream, response: &Response) -> std::io::Result<()> {
+    fn send_response(&self, mut stream: &TcpStream, response: &Response) -> Result<(), std::io::Error> {
         let response_string = response.response_string.clone();
         stream.write(response_string.as_bytes())?;
         stream.flush()?;
