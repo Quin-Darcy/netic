@@ -63,6 +63,7 @@ impl Response {
 	                ServerError::NonUTF8Sequence => (400, "Non-UTF8 sequence\n"),
 	                ServerError::InsufficientMessageSize => (400, "Insufficient message size\n"),
 	                ServerError::InvalidStateTransition => (400, "Invalid state transition\n"),
+	                ServerError::None => (200, "A-OK"),
 	            };
 	            (code, "ERROR", msg.to_string())
 	        }
