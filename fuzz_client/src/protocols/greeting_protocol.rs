@@ -193,7 +193,12 @@ impl Protocol for GreetingProtocol {
 	            payload,
 	        }
 	    } else {
-	        panic!("Invalid response format");
+	    	println!("INVALID SERVER RESPONSE");
+	    	GreetingServerState {
+	    		response_code: 200,
+	    		status_message: String::from("OK"),
+	    		payload: String::from("Hello, client!\n"),
+	    	}
 	    }
 	}
 
@@ -314,10 +319,19 @@ fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProto
 			let payload_length = mutated_sections.get(&GreetingMessageSectionsKey::Length).unwrap().length;
 			let multiplier = rng.gen_range(2..10) as u64;
 			let new_payload_length = multiplier * payload_length;
-			mutated_sections.insert(
-				GreetingMessageSectionsKey::Length,
-				GreetingMessageSectionsValue{ length: new_payload_length, ..Default::default() },
-			);
+			if let Some(new_payload_length) = multiplier.checked_mul(payload_length) {
+			    mutated_sections.insert(
+			        GreetingMessageSectionsKey::Length,
+			        GreetingMessageSectionsValue { length: new_payload_length, ..Default::default() },
+			    );
+			} else {
+			    // Handle the case where an overflow occurs, e.g., by setting a maximum length value or skipping the mutation
+				let random_length: u64 = rng.gen_range(2..300) as u64;
+				mutated_sections.insert(
+			        GreetingMessageSectionsKey::Length,
+			        GreetingMessageSectionsValue { length: random_length, ..Default::default() },
+			    );
+			}
 		}
 		2 => {
 			// Replace random byte into payload

@@ -95,8 +95,8 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
 	fn read_response(&mut self, reader: &mut BufReader<&TcpStream>) -> Response {
 		let mut buffer: Vec<u8> = Vec::new();
-        	reader.read_until(b'\n', &mut buffer).expect("Could not read into buffer");
-        	return Response::new(buffer);
+        reader.read_until(b'\n', &mut buffer).expect("Could not read into buffer");
+        return Response::new(buffer);
 	}
 
 	// A new TcpStream is created and destroyed for each MessageSequence
