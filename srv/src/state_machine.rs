@@ -14,6 +14,11 @@ pub enum ServerState {
     Greeted,
     Questioned,
     Terminated,
+    Secret1,
+    Secret2,
+    Secret3,
+    Secret4,
+    Secret5,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -25,6 +30,7 @@ pub enum ServerError {
     NonUTF8Sequence,
     InsufficientMessageSize,
     InvalidStateTransition,
+    None,
 }
 
 
@@ -45,6 +51,27 @@ impl StateTransitionRules {
         // Add a few "secret" rules
         rules.insert((ServerState::Initial, MessageType::TimeRequest), ServerState::Terminated);
         rules.insert((ServerState::Greeted, MessageType::Goodbye), ServerState::Initial);
+        rules.insert((ServerState::Terminated, MessageType::TimeRequest), ServerState::Greeted);
+
+        rules.insert((ServerState::Secret1, MessageType::Hello), ServerState::Greeted);        
+        rules.insert((ServerState::Secret1, MessageType::TimeRequest), ServerState::Questioned);
+        rules.insert((ServerState::Secret1, MessageType::Goodbye), ServerState::Terminated);
+
+        rules.insert((ServerState::Secret2, MessageType::Hello), ServerState::Greeted);
+        rules.insert((ServerState::Secret2, MessageType::TimeRequest), ServerState::Questioned);
+        rules.insert((ServerState::Secret2, MessageType::Goodbye), ServerState::Terminated);
+        
+        rules.insert((ServerState::Secret3, MessageType::Hello), ServerState::Greeted);
+        rules.insert((ServerState::Secret3, MessageType::TimeRequest), ServerState::Questioned);
+        rules.insert((ServerState::Secret3, MessageType::Goodbye), ServerState::Terminated);
+
+        rules.insert((ServerState::Secret4, MessageType::Hello), ServerState::Greeted);
+        rules.insert((ServerState::Secret4, MessageType::TimeRequest), ServerState::Questioned);
+        rules.insert((ServerState::Secret4, MessageType::Goodbye), ServerState::Terminated);
+
+        rules.insert((ServerState::Secret4, MessageType::Hello), ServerState::Greeted);
+        rules.insert((ServerState::Secret4, MessageType::TimeRequest), ServerState::Questioned);
+        rules.insert((ServerState::Secret4, MessageType::Goodbye), ServerState::Terminated);
 
         StateTransitionRules { rules }
     }
@@ -66,6 +93,36 @@ impl StateMachine {
     }
 
     pub fn handle_message(&mut self, message: &Message, transition_rules: &StateTransitionRules) -> Response {
-        Response::new(message, &self.current_state, transition_rules)
+        let (response, new_state) = Response::new(message, &self.current_state, transition_rules);
+
+        if !message.parsing_results.is_empty() {
+            if self.current_state == ServerState::Questioned && message.parsing_results[0].clone() == ServerError::InvalidPayloadLength {
+                println!("---------------SECRET1---------------");
+                self.current_state = ServerState::Secret1;
+            }
+
+            if self.current_state == ServerState::Secret1 && message.parsing_results[0].clone() == ServerError::UnrecognizedPayload {
+                println!("---------------SECRET2---------------");
+                self.current_state = ServerState::Secret2;
+            }
+
+            if self.current_state == ServerState::Secret2 && message.parsing_results[0].clone() == ServerError::HeaderMismatch {
+                println!("---------------SECRET3---------------");
+                self.current_state = ServerState::Secret3;
+            }
+
+            if self.current_state == ServerState::Secret3 && message.parsing_results[0].clone() == ServerError::InvalidPayloadLength {
+                println!("---------------SECRET4---------------");
+                self.current_state = ServerState::Secret4;
+            }
+
+            if self.current_state == ServerState::Secret4 && message.parsing_results[0].clone() == ServerError::NonUTF8Sequence {
+                println!("---------------SECRET4---------------");
+                self.current_state = ServerState::Secret5;
+            }
+        } else {
+            self.current_state = new_state;
+        }
+        response
     }
 }

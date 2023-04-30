@@ -143,7 +143,7 @@ impl<P: Protocol> MessageSequence<P> {
             big_offspring.messages[i] = small_parent.messages[i].clone();
 
             // Since the timings vector is always one less than the length of the MessageSequence
-            if i < crossover_point2 {
+            if i < std::cmp::min(small_parent.timings.len(), big_parent.timings.len()) {
                 small_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
                 big_offspring.timings[i] = (small_parent.timings[i] + big_parent.timings[i]) / 2.0;
             }

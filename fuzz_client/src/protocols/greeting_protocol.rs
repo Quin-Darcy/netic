@@ -8,7 +8,9 @@ use rand::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::Formatter;
+use std::fmt;
+use std::fmt::Debug;
 
 use crate::Protocol;
 use crate::Message;
@@ -326,23 +328,23 @@ fn mutate_sections(message: &Message<GreetingProtocol>) -> Message<GreetingProto
 			}
 		}
 		1 => {
-			// Invalidate payload length
-			let payload_length = mutated_sections.get(&GreetingMessageSectionsKey::Length).unwrap().length;
-			let multiplier = rng.gen_range(2..10) as u64;
-			let new_payload_length = multiplier * payload_length;
-			if let Some(new_payload_length) = multiplier.checked_mul(payload_length) {
-			    mutated_sections.insert(
-			        GreetingMessageSectionsKey::Length,
-			        GreetingMessageSectionsValue { length: new_payload_length, ..Default::default() },
-			    );
-			} else {
-			    // Handle the case where an overflow occurs, e.g., by setting a maximum length value or skipping the mutation
-				let random_length: u64 = rng.gen_range(2..300) as u64;
-				mutated_sections.insert(
-			        GreetingMessageSectionsKey::Length,
-			        GreetingMessageSectionsValue { length: random_length, ..Default::default() },
-			    );
-			}
+		    // Invalidate payload length
+		    let payload_length = mutated_sections.get(&GreetingMessageSectionsKey::Length).unwrap().length;
+		    let multiplier = rng.gen_range(2..10) as u64;
+
+		    if let Some(new_payload_length) = multiplier.checked_mul(payload_length) {
+		        mutated_sections.insert(
+		            GreetingMessageSectionsKey::Length,
+		            GreetingMessageSectionsValue { length: new_payload_length, ..Default::default() },
+		        );
+		    } else {
+		        // Handle the case where an overflow occurs, e.g., by setting a maximum length value or skipping the mutation
+		        let random_length: u64 = rng.gen_range(2..300) as u64;
+		        mutated_sections.insert(
+		            GreetingMessageSectionsKey::Length,
+		            GreetingMessageSectionsValue { length: random_length, ..Default::default() },
+		        );
+		    }
 		}
 		2 => {
 			// Replace random byte into payload

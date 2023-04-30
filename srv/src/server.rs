@@ -35,7 +35,7 @@ impl Server {
     pub fn run(&mut self) {
         loop {
             let (stream, addr) = self.listener.accept().unwrap();
-            println!("New client connected: {:?}", addr);
+            println!("New client connected: {:?}\n", addr);
 
             {
                 let mut client_stream = stream;
@@ -90,13 +90,19 @@ impl Server {
         let mut response_string = response.response_string.clone();
 
         if self.state_machine.current_state == ServerState::Secret1 {
-            response_string.push_str("Secret1");
+            response_string = String::from("200;OK;Secret Response1\n");
         }
         if self.state_machine.current_state == ServerState::Secret2 {
-            response_string.push_str("Secret2");
+            response_string = String::from("200;OK;Secret Response2\n");
         }
         if self.state_machine.current_state == ServerState::Secret3 {
-            response_string.push_str("Secret3");
+            response_string = String::from("200;OK;Secret Response3\n");
+        }
+        if self.state_machine.current_state == ServerState::Secret4 {
+            response_string = String::from("200;OK;Secret Response4\n");
+        }
+        if self.state_machine.current_state == ServerState::Secret5 {
+            response_string = String::from("200;OK;Secret Response5\n");
         }
 
         stream.write(response_string.as_bytes())?;
