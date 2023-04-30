@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::default::Default;
 use std::hash::Hash;
+use std::fmt;
 
 
 use crate::Protocol; 
@@ -88,4 +89,18 @@ impl<P: Protocol + Clone> Clone for Message<P> {
         }
     }
 }
+
+impl<P: Protocol> fmt::Debug for Message<P>
+where
+    P::MessageType: fmt::Debug,
+    P::MessageSectionsKey: fmt::Debug,
+    P::MessageSectionsValue: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Message")
+            .field("data", &String::from_utf8_lossy(&self.data))
+            .finish()
+    }
+}
+
 

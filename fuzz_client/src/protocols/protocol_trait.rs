@@ -4,6 +4,7 @@
 
 use std::hash::Hash;
 use std::cmp::PartialEq;
+use std::fmt::Debug;
 
 use crate::Message;
 use crate::Response;
@@ -15,11 +16,11 @@ use crate::Response;
 // The declaration states that any type implementing the Protocol trait must 
 // also implement the Clone trait.
 pub trait Protocol: Sized+Clone {
-	type MessageType: PartialEq + Clone;
-	type MessageSectionsKey: PartialEq + Eq + Hash + Clone ;
-	type MessageSectionsValue: PartialEq + Clone;
+	type MessageType: PartialEq + Clone + Debug;
+	type MessageSectionsKey: PartialEq + Eq + Hash + Clone + Debug;
+	type MessageSectionsValue: PartialEq + Clone + Debug;
 
-	type ServerState: Clone + Eq + PartialEq + Hash;
+	type ServerState: Clone + Eq + PartialEq + Hash + Debug;
 
 	// Note that Self is a type alias that refers to the implementing type, whereas
 	// &self is a reference to the instance of the implementing type. Here, by type

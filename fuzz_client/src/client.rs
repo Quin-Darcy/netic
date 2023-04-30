@@ -429,5 +429,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			self.create_new_generation(&mating_pool, config.sequence_crossover_rate, config.sequence_mutation_rate, 
 									   config.message_crossover_rate, config.message_mutation_rate);
 		}
+
+		// After running the fuzzer...
+		let dot_string = self.state_model.to_dot_string();
+		std::fs::write("state_model.dot", dot_string).expect("Unable to write to file");
 	}
 }

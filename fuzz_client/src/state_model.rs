@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::cmp::PartialEq;
+use std::fmt::Write;
+use std::fmt::Debug;
 
 use crate::Protocol;
 use crate::StateTransition;
@@ -52,4 +54,31 @@ impl<T: Protocol + PartialEq> StateModel<T> {
     pub fn count_unique_server_states(&self) -> usize {
         self.inner.len()
     }
+
+    pub fn to_dot_string(&self) -> String
+    where
+        <T as Protocol>::ServerState: Debug,
+        <T as Protocol>::MessageType: Debug,
+        <T as Protocol>::MessageSectionsKey: Debug,
+        <T as Protocol>::MessageSectionsValue: Debug,
+    {
+        let mut dot_string = String::new();
+        writeln!(&mut dot_string, "digraph state_graph {{").unwrap();
+
+        for (_source_state, transitions) in &self.inner {
+            for transition in transitions {
+                let source_label = escape_label(&format!("{:?}", transition.source_state));
+                let target_label = escape_label(&format!("{:?}", transition.target_state));
+
+                writeln!(&mut dot_string, r#"    "{}" -> "{}""#, source_label, target_label).unwrap();
+            }
+        }
+
+        writeln!(&mut dot_string, "}}").unwrap();
+        dot_string
+    }
+}
+
+fn escape_label(label: &str) -> String {
+    label.replace("\"", "\\\"").replace("\n", "")
 }

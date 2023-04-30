@@ -8,27 +8,28 @@ use rand::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::fmt::{self, Debug, Formatter};
 
 use crate::Protocol;
 use crate::Message;
 use crate::Response;
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum GreetingMessageType {
 	Hello,
 	TimeRequest,
 	Goodbye,
 }
 
-#[derive(Clone, Hash, Eq, PartialEq)]
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
 pub enum GreetingMessageSectionsKey {
 	Header,
 	Length,
 	Payload,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct GreetingMessageSectionsValue {
 	pub header: [u8; 4],
 	pub length: u64,
@@ -62,6 +63,16 @@ pub struct GreetingServerState {
 	response_code: u16,
 	status_message: String,
 	payload: String,
+}
+
+impl Debug for GreetingServerState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} - {}: {}",
+            self.response_code, self.status_message, self.payload
+        )
+    }
 }
 
 #[derive(Clone, PartialEq)]
