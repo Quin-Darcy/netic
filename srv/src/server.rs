@@ -87,7 +87,18 @@ impl Server {
     }
 
     fn send_response(&self, mut stream: &TcpStream, response: &Response) -> Result<(), std::io::Error> {
-        let response_string = response.response_string.clone();
+        let mut response_string = response.response_string.clone();
+
+        if self.state_machine.current_state == ServerState::Secret1 {
+            response_string.push_str("Secret1");
+        }
+        if self.state_machine.current_state == ServerState::Secret2 {
+            response_string.push_str("Secret2");
+        }
+        if self.state_machine.current_state == ServerState::Secret3 {
+            response_string.push_str("Secret3");
+        }
+
         stream.write(response_string.as_bytes())?;
         stream.flush()?;
         Ok(())
