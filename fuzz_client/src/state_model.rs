@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::cmp::PartialEq;
 use std::fmt::Write;
 use std::fmt::Debug;
@@ -65,18 +66,40 @@ impl<T: Protocol + PartialEq> StateModel<T> {
         let mut dot_string = String::new();
         writeln!(&mut dot_string, "digraph state_graph {{").unwrap();
 
+        let mut unique_transitions = HashSet::new();
+        let mut to_remove = HashSet::new();
+
         for (_source_state, transitions) in &self.inner {
             for transition in transitions {
-                let source_label = escape_label(&format!("{:?}", transition.source_state));
-                let target_label = escape_label(&format!("{:?}", transition.target_state));
+                unique_transitions.insert((transition.source_state.clone(), transition.target_state.clone()));
+            }
+        }
 
+        for (source_state, target_state) in &unique_transitions {
+            let source_label = escape_label(&format!("{:?}", source_state));
+            let target_label = escape_label(&format!("{:?}", target_state));
+
+            if unique_transitions.contains(&(target_state.clone(), source_state.clone())) {
+                // If the reversed pair is in the HashSet, create a double-headed arrow
+                writeln!(&mut dot_string, r#"    "{}" -> "{}" [dir="both"]"#, source_label, target_label).unwrap();
+
+                // Add the reversed pair to the to_remove HashSet to avoid duplicate edges
+                to_remove.insert((target_state.clone(), source_state.clone()));
+            } else {
+                // Otherwise, create a single-headed arrow
                 writeln!(&mut dot_string, r#"    "{}" -> "{}""#, source_label, target_label).unwrap();
             }
+        }
+
+        // Remove the reversed pairs from the HashSet
+        for pair in to_remove {
+            unique_transitions.remove(&pair);
         }
 
         writeln!(&mut dot_string, "}}").unwrap();
         dot_string
     }
+
 }
 
 fn escape_label(label: &str) -> String {
