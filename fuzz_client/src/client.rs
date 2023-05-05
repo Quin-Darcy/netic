@@ -9,7 +9,7 @@ use std::thread;
 use std::hash::Hash;
 use std::collections::HashSet;
 use std::cmp::PartialEq;
-use std::time::Duration;
+use std::time::{Instant, Duration};
 use std::collections::HashMap;
 use std::net::{TcpStream, Shutdown};
 use std::io::{self, BufRead, BufReader, Write};
@@ -37,6 +37,7 @@ pub struct FuzzConfig {
 	pub pool_update_rate: f32,
 	pub state_rarity_threshold: f32,
 	pub state_coverage_weight: f32,
+	pub response_time_weight: f32,
 	pub state_roc_weight: f32,
 	pub state_rarity_weight: f32,
 }
@@ -49,6 +50,9 @@ pub struct Client<P: Protocol + Clone + PartialEq> {
 	state_model: StateModel<P>,
 	message_pool: Vec<Message<P>>, 
 }
+
+
+const RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 
 impl<P: Protocol + Clone + PartialEq> Client<P> {
     // Initialize new client with random corpus and message_pool
@@ -93,36 +97,62 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
     	.expect("Failed to write to server");
     }
 
-	fn read_response(&mut self, reader: &mut BufReader<&TcpStream>) -> Response {
-		let mut buffer: Vec<u8> = Vec::new();
-        reader.read_until(b'\n', &mut buffer).expect("Could not read into buffer");
-        return Response::new(buffer);
+	fn read_response(&mut self, reader: &mut BufReader<&TcpStream>) -> Result<Response, std::io::Error> {
+	    let mut buffer: Vec<u8> = Vec::new();
+	    
+	    // Set the read timeout
+	    reader.get_mut().set_read_timeout(Some(RESPONSE_TIMEOUT))
+	        .expect("Failed to set read timeout");
+	    
+	    let read_result = reader.read_until(b'\n', &mut buffer);
+	    match read_result {
+	        Ok(_) => Ok(Response::new(buffer)),
+	        Err(e) => Err(e),
+	    }
 	}
 
 	// A new TcpStream is created and destroyed for each MessageSequence
 	// Send every MessageSequence in the current corpus and collect the Message sent
 	// with the Responses received and return this collection
 	fn run_message_sequence(&mut self, message_sequence: &MessageSequence<P>) -> Vec<(Message<P>, Response)> {
-		let stream: TcpStream = self.initialize_stream();
-		let mut reader = BufReader::new(&stream);
-		let mut message_response: Vec<(Message<P>, Response)> = Vec::new();
+	    let stream: TcpStream = self.initialize_stream();
+	    let mut reader = BufReader::new(&stream);
+	    let mut message_response: Vec<(Message<P>, Response)> = Vec::new();
 
-		for (index, message) in message_sequence.messages.iter().enumerate() {
-			self.send_message(&stream, message);
+	    for (index, original_message) in message_sequence.messages.iter().enumerate() {
+	        self.send_message(&stream, original_message);
 
-			let response: Response = self.read_response(&mut reader);
-			message_response.push((message.clone(), response));
+	        // Begin timer to track server's response time
+	        let start_time = Instant::now();
 
-			// wait message_sequence.timings[index] many seconds
-			// before sending the next message
-			if index < message_sequence.timings.len() {
-				let sleep_duration: Duration = Duration::from_secs_f32(message_sequence.timings[index]);
-				thread::sleep(sleep_duration);
-			}
-		}
-		self.terminate_stream(stream);
-		return message_response
+	        // Result is returned in case server crashes or hangs and reading from stream was not possible
+	        let response_result: Result<Response, std::io::Error> = self.read_response(&mut reader);
+	        let elapsed_time = start_time.elapsed();
+
+	        let mut message = original_message.clone(); // Clone the message to create a mutable copy
+
+	        match response_result {
+	            Ok(response) => {
+	                message.response_time = elapsed_time.as_secs_f32();
+	                message_response.push((message, response));
+	            }
+	            Err(e) => {
+	                message.response_time = 5.0;
+	                message_response.push((message, Response::new(vec![])));
+	            }
+	        }
+
+	        // wait message_sequence.timings[index] many seconds
+	        // before sending the next message
+	        if index < message_sequence.timings.len() {
+	            let sleep_duration: Duration = Duration::from_secs_f32(message_sequence.timings[index]);
+	            thread::sleep(sleep_duration);
+	        }
+	    }
+	    self.terminate_stream(stream);
+	    return message_response;
 	}
+
 
 	// Take the interection history (Vec<Message<P>, Response)>) of each MessageSequnce sent and 
 	// construct the resultant StateTransitions from this information and return a vector of all the 
@@ -269,6 +299,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		unique_server_states_visited: &[usize], 
 		rare_server_states: &HashSet<P::ServerState>,
 		state_coverage_weight: f32,
+		response_time_weight: f32,
 		state_roc_weight: f32,
 		state_rarity_weight: f32,
 		) {
@@ -287,18 +318,24 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
  			// Of the ServerStates prompted by the MessageSequence, the proportion of them which can be found
  			// in rare_server_states is the rarity_score. This evaluates how effective the message sequence is 
- 			// at getting the server into rare states
+ 			// at getting the server into rare states. We also get the average server_response_times
 	        let mut rare_states_count = 0;
+	        let mut response_time_score = 0.0;
 	        for (message, response) in &corpus_trace[i] {
+	        	response_time_score += message.response_time / 5.0;
 	            let target_state = self.protocol.parse_response(&response);
 	            if rare_server_states.contains(&target_state) {
 	                rare_states_count += 1;
 	            }
 	        }
+
+	        response_time_score = response_time_score / (corpus_trace[i].len() as f32);
+
 	        let rarity_score = rare_states_count as f32 / corpus_trace[i].len() as f32;
 
 	        // Combine the three scores with their respective weights to compute the final fitness
 	        let fitness = coverage_score * state_coverage_weight
+	        	+ response_time_score * response_time_weight
 	            + rate_of_change_score * state_roc_weight
 	            + rarity_score * state_rarity_weight;
 
@@ -415,7 +452,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         	// Compute fitness of each MessageSequence in the corpus
         	let mut corpus_clone = self.corpus.clone();
         	self.evaluate_fitness(&mut corpus_clone, &corpus_trace, &unique_server_states_visited, &rare_server_states, 
-        						  config.state_coverage_weight, config.state_roc_weight, config.state_rarity_weight);
+        						  config.state_coverage_weight, config.response_time_weight, config.state_roc_weight, config.state_rarity_weight);
 			
 			self.corpus = corpus_clone.to_vec();
 

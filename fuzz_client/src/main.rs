@@ -25,6 +25,7 @@ fn main() {
         pool_update_rate: 0.3,
         state_rarity_threshold: 0.2,
         state_coverage_weight: 0.6,
+        response_time_weight: 0.8,
         state_roc_weight: 0.8,
         state_rarity_weight: 1.0,
     };

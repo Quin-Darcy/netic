@@ -102,6 +102,8 @@ impl Protocol for GreetingProtocol {
 	        _ => unreachable!(),
 	    };
 
+	    let response_time: f32 = 0.0;
+
 	    let mut sections = HashMap::new();
 	    sections.insert(
 	        GreetingMessageSectionsKey::Header,
@@ -122,6 +124,7 @@ impl Protocol for GreetingProtocol {
 	        protocol: GreetingProtocol,
 	        data,
 	        message_type,
+	        response_time,
 	        sections,
 	    }
 	}
@@ -182,11 +185,13 @@ impl Protocol for GreetingProtocol {
 	    );
 
 	    let data = [&header[..], &(length.to_be_bytes()), &payload[..]].concat();
+	    let response_time: f32 = 0.0;
 
 	    Message {
 	        protocol: GreetingProtocol,
 	        data,
 	        message_type,
+	        response_time,
 	        sections,
 	    }
 	}

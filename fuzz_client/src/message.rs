@@ -23,6 +23,7 @@ pub struct Message<P: Protocol> {
 	pub protocol: P, // This gives us an instance of the type implementing the Protocol trait
 	pub data: Vec<u8>,
 	pub message_type: P::MessageType,
+	pub response_time: f32,
 	pub sections: HashMap<P::MessageSectionsKey, P::MessageSectionsValue>,
 }
 
@@ -34,6 +35,7 @@ impl<P: Protocol> Message<P> {
 			protocol,
 			data: Vec::new(),
 			message_type: Default::default(),
+			response_time: 0.0,
 			sections: HashMap::new(),
 		}
 	}
@@ -59,6 +61,7 @@ impl<P: Protocol> Message<P> {
 
 		self.data = mutated_message.data;
 		self.message_type = mutated_message.message_type;
+		self.response_time = mutated_message.response_time;
 		self.sections = mutated_message.sections;
 	}
 
@@ -85,6 +88,7 @@ impl<P: Protocol + Clone> Clone for Message<P> {
         	protocol: self.protocol.clone(),
         	data: self.data.clone(),
         	message_type: self.message_type.clone(),
+        	response_time: self.response_time.clone(),
         	sections: self.sections.clone(),
         }
     }
