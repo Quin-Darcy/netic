@@ -5,10 +5,12 @@ mod client;
 mod response;
 mod state_transition;
 mod state_model;
+mod transport;
 
 pub use protocols::Protocol;
 pub use protocols::GreetingProtocol;
 
+pub use transport::{Transport, TransportProtocol};
 pub use message::Message;
 pub use message_sequence::MessageSequence;
 pub use client::Client;

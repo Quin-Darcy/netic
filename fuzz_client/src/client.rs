@@ -23,8 +23,11 @@ use crate::MessageSequence;
 use crate::StateTransition;
 use crate::StateModel;
 use crate::Response;
+use crate::Transport;
+use crate::TransportProtocol;
 
 use crate::GreetingProtocol;
+
 
 pub struct FuzzConfig {
 	pub generations: usize,
@@ -45,6 +48,7 @@ pub struct FuzzConfig {
 
 pub struct Client<P: Protocol + Clone + PartialEq> {
 	server_address: String,
+	transport_protocol: TransportProtocol,
 	protocol: P,
 	pub corpus: Vec<MessageSequence<P>>,
 	state_model: StateModel<P>,
@@ -56,7 +60,7 @@ const RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 
 impl<P: Protocol + Clone + PartialEq> Client<P> {
     // Initialize new client with random corpus and message_pool
-    pub fn new(server_address: String, protocol: P) -> Self {
+    pub fn new(server_address: String, transport_protocol: TransportProtocol, protocol: P) -> Self {
         const MESSAGE_SEQUENCE_LENGTH: usize = 6;
         const MESSAGE_POOL_LENGTH: usize = 10;
         const INITIAL_CORPUS_LENGTH: usize = 5;
@@ -76,6 +80,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
         Self {
             server_address,
+            transport_protocol,
             protocol,
             corpus,
             state_model: StateModel::new(),
@@ -83,50 +88,38 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         }
     }
 
-    fn initialize_stream(&mut self) -> TcpStream {
-    	TcpStream::connect(self.server_address.as_str())
-    	.expect("Could not connect to server")
+    // Initialize client with corpus pulled from PCAP file
+    pub fn new_from_pcap(pcap_file: &str, protocol: P) -> Self {
+    	todo!();
     }
 
-    fn terminate_stream(&mut self, stream: TcpStream) {
-    	stream.shutdown(Shutdown::Both).expect("Shutdown call failed");
-    }
-
-    fn send_message(&mut self, mut stream: &TcpStream, message: &Message<P>) {
-    	stream.write(&message.data)
-    	.expect("Failed to write to server");
-    }
-
-	fn read_response(&mut self, reader: &mut BufReader<&TcpStream>) -> Result<Response, std::io::Error> {
-	    let mut buffer: Vec<u8> = Vec::new();
-	    
-	    // Set the read timeout
-	    reader.get_mut().set_read_timeout(Some(RESPONSE_TIMEOUT))
-	        .expect("Failed to set read timeout");
-	    
-	    let read_result = reader.read_until(b'\n', &mut buffer);
-	    match read_result {
-	        Ok(_) => Ok(Response::new(buffer)),
-	        Err(e) => Err(e),
-	    }
+	fn initialize_transport(&self) -> Result<Transport, std::io::Error> {
+	    Transport::connect(self.transport_protocol.clone(), &self.server_address)
 	}
 
-	// A new TcpStream is created and destroyed for each MessageSequence
+	fn send_message(&mut self, transport: &mut Transport, message: &Message<P>) {
+	    transport.send(&message.data);
+	}
+
+	fn read_response(&mut self, transport: &mut Transport) -> Result<Response, std::io::Error> {
+	    transport.receive()
+	}
+
+	// A new Transport Stream is created and destroyed for each MessageSequence
 	// Send every MessageSequence in the current corpus and collect the Message sent
 	// with the Responses received and return this collection
 	fn run_message_sequence(&mut self, message_sequence: &MessageSequence<P>) -> Vec<(Message<P>, Response)> {
-	    let stream: TcpStream = self.initialize_stream();
-	    let mut reader = BufReader::new(&stream);
+	    let mut transport = self.initialize_transport().expect("Failed to initialize transport");
 	    let mut message_response: Vec<(Message<P>, Response)> = Vec::new();
 
 	    for (index, original_message) in message_sequence.messages.iter().enumerate() {
-	        self.send_message(&stream, original_message);
+	        self.send_message(&mut transport, original_message);
 
 	        // Begin timer to track server's response time
 	        let start_time = Instant::now();
 
 	        // Result is returned in case server crashes or hangs and reading from stream was not possible
-	        let response_result: Result<Response, std::io::Error> = self.read_response(&mut reader);
+	        let response_result: Result<Response, std::io::Error> = self.read_response(&mut transport);
 	        let elapsed_time = start_time.elapsed();
 
 	        let mut message = original_message.clone(); // Clone the message to create a mutable copy
@@ -149,10 +142,11 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	            thread::sleep(sleep_duration);
 	        }
 	    }
-	    self.terminate_stream(stream);
-	    return message_response;
+	    if let Err(e) = transport.shutdown() {
+	        eprintln!("Error shutting down transport: {}", e);
+	    }
+	    message_response
 	}
-
 
 	// Take the interection history (Vec<Message<P>, Response)>) of each MessageSequnce sent and 
 	// construct the resultant StateTransitions from this information and return a vector of all the 

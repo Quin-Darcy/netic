@@ -15,6 +15,8 @@ use std::fmt::Debug;
 use crate::Protocol;
 use crate::Message;
 use crate::Response;
+use crate::MessageSequence;
+use crate::Transport;
 
 
 #[derive(Clone, PartialEq, Debug)]
@@ -242,6 +244,10 @@ impl Protocol for GreetingProtocol {
 			1 => crossover_sections(message1, message2),
 			_ => panic!("Unexpected crossover_level value"),
 		}
+	}
+
+	fn parse_pcap(&self, pcap_file: &str) -> Vec<MessageSequence<Self>> {
+		todo!();
 	}
 }
 

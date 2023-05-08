@@ -7,6 +7,7 @@ use crate::Response;
 
 const RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 
+#[derive(Clone)]
 pub enum TransportProtocol {
     TCP,
     UDP,
@@ -81,19 +82,3 @@ impl Transport {
         }
     }
 }
-
-/*
-    fn read_response(&mut self, reader: &mut BufReader<&TcpStream>) -> Result<Response, std::io::Error> {
-        let mut buffer: Vec<u8> = Vec::new();
-        
-        // Set the read timeout
-        reader.get_mut().set_read_timeout(Some(RESPONSE_TIMEOUT))
-            .expect("Failed to set read timeout");
-        
-        let read_result = reader.read_until(b'\n', &mut buffer);
-        match read_result {
-            Ok(_) => Ok(Response::new(buffer)),
-            Err(e) => Err(e),
-        }
-    }
-*/

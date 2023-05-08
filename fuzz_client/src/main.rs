@@ -2,17 +2,21 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
+
 use fuzz_client::Client;
 use fuzz_client::GreetingProtocol;
 use fuzz_client::FuzzConfig;
 use fuzz_client::MessageSequence;
+use fuzz_client::TransportProtocol;
 
 
 fn main() {
-    let server_address: String = String::from("127.0.0.1:8888");
+    // User-provided server address and transport protocol
+    let server_address = String::from("127.0.0.1:8888");
+    let transport_protocol: TransportProtocol = TransportProtocol::TCP;
 
     // Create instance of Client
-    let mut client = Client::new(server_address, GreetingProtocol);
+    let mut client = Client::new(server_address, transport_protocol, GreetingProtocol);
 
     let config = FuzzConfig {
         generations: 45,
