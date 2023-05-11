@@ -5,15 +5,15 @@
 use std::hash::Hash;
 use std::cmp::PartialEq;
 use std::fmt::Debug;
+use rand::Rng;
+use strum_macros::EnumIter;
 
 use crate::Message;
 use crate::Response;
 use crate::MessageSequence;
 
 
-pub struct SMTP {
-    // Add any required fields and states for your protocol here.
-}
+pub struct SMTP;
 
 impl Protocol for SMTP {
     type MessageType = SMTPMessageType;
@@ -23,8 +23,51 @@ impl Protocol for SMTP {
     type ServerState = SMTPServerState;
 
     fn random_message(&self) -> Message<Self> {
-        // Generate a random message for your protocol and return it.
-        todo!();
+        let mut rng = rand::thread_rng();
+        let message_types = SMTPMessageType::iter().collect::<Vec<_>>();
+        let index = rng.gen_range(0..message_types.len());
+        let rand_message_type = message_types[index].clone();
+
+        let sections: HashMap<SMTPMessageSectionsKey
+
+        /*
+
+        let possible_payloads: [&str; 3] = ["Hello!\n", "What time is it?\n", "Goodbye!\n"];
+    
+        let payload = possible_payloads.choose(&mut rng).unwrap();
+        let (message_type, header) = match *payload {
+            "Hello!\n" => (GreetingMessageType::Hello, [0x48, 0x45, 0x4C, 0x4F]),
+            "What time is it?\n" => (GreetingMessageType::TimeRequest, [0x54, 0x49, 0x4D, 0x45]),
+            "Goodbye!\n" => (GreetingMessageType::Goodbye, [0x42, 0x59, 0x45, 0x5F]),
+            _ => unreachable!(),
+        };
+
+        let response_time: f32 = 0.0;
+
+        let mut sections = HashMap::new();
+        sections.insert(
+            GreetingMessageSectionsKey::Header,
+            GreetingMessageSectionsValue { header, ..Default::default() },
+        );
+        sections.insert(
+            GreetingMessageSectionsKey::Length,
+            GreetingMessageSectionsValue { length: payload.len() as u64, ..Default::default() },
+        );
+        sections.insert(
+            GreetingMessageSectionsKey::Payload,
+            GreetingMessageSectionsValue { payload: payload.as_bytes().to_vec(), ..Default::default() },
+        );
+
+        let data = [&header[..], &(payload.len() as u64).to_be_bytes(), &payload.as_bytes()].concat();
+
+        Message {
+            protocol: GreetingProtocol,
+            data,
+            message_type,
+            response_time,
+            sections,
+        }
+        */
     }
 
     fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
@@ -63,33 +106,28 @@ pub struct SMTPMessageType {
     DATA,
     QUIT,
     RSET,
-    AUTH,
-    STARTTLS,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum SMTPMessageSectionsKey {
-    Helo,
-    Ehlo,
-    MailFrom,
-    RcptTo,
-    Data,
-    Rset,
-    Vrfy,
-    Expn,
-    Help,
-    Quit,
+    Domain,
+    EmailAddress,
+    PlainText,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum SMTPMessageSectionsValue {
-    Domain(String),
-    Sender(String),
-    Recipient(String),
-    EmailData(String), // This would include the email message with its headers and body.
-    User(String),
-    Command(String),
+    DomainValue(String),
+    EmailAddressValue {
+        address: String,
+        angle_brackets: bool,
+    },
+    PlainTextValue {
+        text: String,
+        newline_period: bool,
+    },
 }
+
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct SMTPServerState {
