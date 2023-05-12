@@ -12,11 +12,32 @@ SMTP (Simple Mail Transfer Protocol) is a communication protocol for mail transf
 
 5. QUIT: Terminate the SMTP session.
 
-
-
 #### SMTP Command Semantics and Syntax
 
 1. **Extended HELLO (EHLO) or HELLO (HELO)**: These commands are used to identify the SMTP client to the SMTP server. The argument clause contains the fully-qualified domain name of the SMTP client, if one is available. 
+   
+   * **Structure**: `HELO <SP> <domain> <CRLF>`, `
+     EHLO <SP> <domain> <CRLF>`
+
+2. **MAIL FROM**: More details about the mail from command
+   
+   * **Structure**: `MAIL FROM:<reverse-path> <CRLF>` 
+
+3. **RCPT TO**: More details about RCTP TO command
+   
+   * **Structure**: `RCPT TO:<forward-path> <CRLF>`
+
+4. **DATA**: More details about data command
+   
+   * **Structure**: `DATA<CRLF>`
+
+5. **QUIT**: More details about quit command
+   
+   * **Structure**: `QUIT<CRLF>`
+
+6. **RSET**: More details about rset command
+   
+   * **Structure**: `RSET<CRLF>`
 
 
 

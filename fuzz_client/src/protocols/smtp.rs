@@ -1,18 +1,26 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
+#![allow(non_camel_case_types)]
 
 use std::hash::Hash;
+use std::collections::HashMap;
 use std::cmp::PartialEq;
 use std::fmt::Debug;
 use rand::Rng;
+use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use std::fmt::Formatter;
+use std::fmt;
 
+use crate::Protocol;
 use crate::Message;
 use crate::Response;
 use crate::MessageSequence;
+use crate::Transport;
 
 
+#[derive(Clone, PartialEq)]
 pub struct SMTP;
 
 impl Protocol for SMTP {
@@ -26,48 +34,100 @@ impl Protocol for SMTP {
         let mut rng = rand::thread_rng();
         let message_types = SMTPMessageType::iter().collect::<Vec<_>>();
         let index = rng.gen_range(0..message_types.len());
-        let rand_message_type = message_types[index].clone();
+        let selected_message_type = message_types[index].clone();
 
-        let sections: HashMap<SMTPMessageSectionsKey
+        let mut sections: HashMap<SMTPMessageSectionsKey, SMTPMessageSectionsValue> = HashMap::new();
 
-        /*
+        match selected_message_type {
+            SMTPMessageType::HELO => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
+                );
 
-        let possible_payloads: [&str; 3] = ["Hello!\n", "What time is it?\n", "Goodbye!\n"];
-    
-        let payload = possible_payloads.choose(&mut rng).unwrap();
-        let (message_type, header) = match *payload {
-            "Hello!\n" => (GreetingMessageType::Hello, [0x48, 0x45, 0x4C, 0x4F]),
-            "What time is it?\n" => (GreetingMessageType::TimeRequest, [0x54, 0x49, 0x4D, 0x45]),
-            "Goodbye!\n" => (GreetingMessageType::Goodbye, [0x42, 0x59, 0x45, 0x5F]),
-            _ => unreachable!(),
-        };
+                 // Call to random domain generator should be made here
+                sections.insert(
+                    SMTPMessageSectionsKey::Domain,
+                    SMTPMessageSectionsValue::DomainValue(String::from(" example.com\r\n")),
+                );
+            }
+            SMTPMessageType::EHLO => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+                );
 
-        let response_time: f32 = 0.0;
+                 // Call to random domain generator should be made here
+                sections.insert(
+                    SMTPMessageSectionsKey::Domain,
+                    SMTPMessageSectionsValue::DomainValue(String::from(" example.com\r\n")),
+                );
+            }
+            SMTPMessageType::MAIL_FROM => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
+                );
 
-        let mut sections = HashMap::new();
-        sections.insert(
-            GreetingMessageSectionsKey::Header,
-            GreetingMessageSectionsValue { header, ..Default::default() },
-        );
-        sections.insert(
-            GreetingMessageSectionsKey::Length,
-            GreetingMessageSectionsValue { length: payload.len() as u64, ..Default::default() },
-        );
-        sections.insert(
-            GreetingMessageSectionsKey::Payload,
-            GreetingMessageSectionsValue { payload: payload.as_bytes().to_vec(), ..Default::default() },
-        );
+                 // Call to random email generator should be made here
+                sections.insert(
+                    SMTPMessageSectionsKey::EmailAddress,
+                    SMTPMessageSectionsValue::EmailAddressValue(String::from(":<user@example.com>\r\n")),
+                );
+            }
+            SMTPMessageType::RCPT_TO => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
+                );
 
-        let data = [&header[..], &(payload.len() as u64).to_be_bytes(), &payload.as_bytes()].concat();
+                 // Call to random email generator should be made here
+                sections.insert(
+                    SMTPMessageSectionsKey::EmailAddress,
+                    SMTPMessageSectionsValue::EmailAddressValue(String::from(":<user@example.com>\r\n")),
+                );
+            }
+            SMTPMessageType::DATA => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("DATA\r\n")),
+                );
+            }
+            SMTPMessageType::QUIT => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("QUIT\r\n")),
+                );
+            }
+            SMTPMessageType::RSET => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("RSET\r\n")),
+                );
+            }
+        }
+
+        let response_time = 0.0;
+        let mut data: Vec<u8> = Vec::new();
+
+        for (_, value) in sections.iter() {
+            match value {
+                SMTPMessageSectionsValue::CommandValue(s)
+                | SMTPMessageSectionsValue::DomainValue(s)
+                | SMTPMessageSectionsValue::EmailAddressValue(s)
+                | SMTPMessageSectionsValue::PlainTextValue(s) => {
+                    data.extend(s.as_bytes());
+                }
+            }
+        }
 
         Message {
-            protocol: GreetingProtocol,
+            protocol: SMTP,
             data,
-            message_type,
+            message_type: selected_message_type,
             response_time,
             sections,
         }
-        */
     }
 
     fn build_message(&self, message_bytes: &[u8]) -> Message<Self> {
@@ -97,8 +157,8 @@ impl Protocol for SMTP {
 
 // Define your protocol-specific types below.
 
-#[derive(PartialEq, Clone, Debug)]
-pub struct SMTPMessageType {
+#[derive(EnumIter, PartialEq, Clone, Debug)]
+pub enum SMTPMessageType {
     HELO,
     EHLO,
     MAIL_FROM,
@@ -110,6 +170,7 @@ pub struct SMTPMessageType {
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum SMTPMessageSectionsKey {
+    Command,
     Domain,
     EmailAddress,
     PlainText,
@@ -117,21 +178,10 @@ pub enum SMTPMessageSectionsKey {
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum SMTPMessageSectionsValue {
+    CommandValue(String),
     DomainValue(String),
-    EmailAddressValue {
-        address: String,
-        angle_brackets: bool,
-    },
-    PlainTextValue {
-        text: String,
-        newline_period: bool,
-    },
-}
-
-
-#[derive(Clone, Eq, PartialEq, Hash, Debug)]
-pub struct SMTPServerState {
-    // Add any required fields for your protocol server state here.
+    EmailAddressValue(String),
+    PlainTextValue(String),
 }
 
 impl Default for SMTPMessageType {
