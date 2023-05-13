@@ -5,6 +5,7 @@
 
 use fuzz_client::Client;
 use fuzz_client::GreetingProtocol;
+use fuzz_client::SMTP;
 use fuzz_client::FuzzConfig;
 use fuzz_client::MessageSequence;
 use fuzz_client::TransportProtocol;

@@ -8,6 +8,7 @@ use std::fmt::Debug;
 
 use crate::Message;
 use crate::Response;
+use crate::MessageSequence;
 
 
 pub struct YourProtocol {
@@ -43,6 +44,10 @@ impl Protocol for YourProtocol {
 
     fn parse_response(&self, response: &Response) -> Self::ServerState {
         // Parse the given response and return the corresponding server state for your protocol.
+        todo!();
+    }
+
+    fn parse_pcap(&self, pcap_file: &str) -> Vec<MessageSequence<Self>> {
         todo!();
     }
 }

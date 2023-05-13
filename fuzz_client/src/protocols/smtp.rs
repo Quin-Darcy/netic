@@ -12,6 +12,12 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use std::fmt::Formatter;
 use std::fmt;
+use pcap::Capture;
+use pnet::packet::ethernet::EthernetPacket;
+use pnet::packet::ipv4::Ipv4Packet;
+use pnet::packet::ipv4::Ipv4;
+use pnet::packet::Packet;
+use pnet::packet::tcp::TcpPacket;
 
 use crate::Protocol;
 use crate::Message;
@@ -150,8 +156,23 @@ impl Protocol for SMTP {
         todo!();
     }
 
-    fn parse_pcap(&self, pcap_file: &str) -> Vec<MessageSequence<Self>> {
-        todo!();
+    // This method takes a path to a file path to a pcap file as an argument and extracts out 
+    // the SMTP messages from the pcap file, then processes the messages in order to determine
+    // which seqeunces to bundle together as a MessageSequence. Finally, the collection
+    // of all MessageSequences are returned as a vector.
+    fn parse_pcap(&self, pcap_file: &str, server_address: &str) -> Vec<MessageSequence<Self>> {
+        let mut cap = Capture::from_file(pcap_file).unwrap();
+        let mut messages: Vec<Message<Self>> = Vec::new();
+
+        while let Ok(packet) = cap.next() {
+            // Parse Ethernet, IP, and TCP headers to get application layer data.
+            let ethernet = EthernetPacket::new(packet.data).unwrap();
+            let ip = Ipv4Packet::new(ethernet.payload()).unwrap();
+            let tcp = TcpPacket::new(ip.payload()).unwrap();
+        }
+
+        let mut message_sequences: Vec<MessageSequence<Self>> = Vec::new();
+        message_sequences
     }
 }
 

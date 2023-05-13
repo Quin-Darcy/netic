@@ -9,6 +9,7 @@ mod transport;
 
 pub use protocols::Protocol;
 pub use protocols::GreetingProtocol;
+pub use protocols::SMTP;
 
 pub use transport::{Transport, TransportProtocol};
 pub use message::Message;

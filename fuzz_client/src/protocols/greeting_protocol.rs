@@ -19,66 +19,6 @@ use crate::MessageSequence;
 use crate::Transport;
 
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum GreetingMessageType {
-	Hello,
-	TimeRequest,
-	Goodbye,
-}
-
-#[derive(Clone, Hash, Eq, PartialEq, Debug)]
-pub enum GreetingMessageSectionsKey {
-	Header,
-	Length,
-	Payload,
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct GreetingMessageSectionsValue {
-	pub header: [u8; 4],
-	pub length: u64,
-	pub payload: Vec<u8>
-}
-
-impl Default for GreetingMessageType {
-    fn default() -> Self {
-        Self::Hello
-    }
-}
-
-impl Default for GreetingMessageSectionsKey {
-    fn default() -> Self {
-        Self::Header
-    }
-}
-
-impl Default for GreetingMessageSectionsValue {
-    fn default() -> Self {
-        GreetingMessageSectionsValue {
-        	header: [0x00, 0x00, 0x00, 0x00],
-        	length: 0_u64,
-        	payload: Vec::new(),
-        }
-    }
-}
-
-#[derive(Clone, Eq, PartialEq, Hash)]
-pub struct GreetingServerState {
-	response_code: u16,
-	status_message: String,
-	payload: String,
-}
-
-impl Debug for GreetingServerState {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{} - {}: {}",
-            self.response_code, self.status_message, self.payload
-        )
-    }
-}
-
 #[derive(Clone, PartialEq)]
 pub struct GreetingProtocol;
 
@@ -246,7 +186,7 @@ impl Protocol for GreetingProtocol {
 		}
 	}
 
-	fn parse_pcap(&self, pcap_file: &str) -> Vec<MessageSequence<Self>> {
+	fn parse_pcap(&self, pcap_file: &str, server_address: &str) -> Vec<MessageSequence<Self>> {
 		todo!();
 	}
 }
@@ -459,4 +399,64 @@ fn crossover_sections(message1: &Message<GreetingProtocol>, message2: &Message<G
     let offspring2 = build_offspring(offspring2_sections);
 
     (offspring1, offspring2)
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub enum GreetingMessageType {
+	Hello,
+	TimeRequest,
+	Goodbye,
+}
+
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
+pub enum GreetingMessageSectionsKey {
+	Header,
+	Length,
+	Payload,
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct GreetingMessageSectionsValue {
+	pub header: [u8; 4],
+	pub length: u64,
+	pub payload: Vec<u8>
+}
+
+impl Default for GreetingMessageType {
+    fn default() -> Self {
+        Self::Hello
+    }
+}
+
+impl Default for GreetingMessageSectionsKey {
+    fn default() -> Self {
+        Self::Header
+    }
+}
+
+impl Default for GreetingMessageSectionsValue {
+    fn default() -> Self {
+        GreetingMessageSectionsValue {
+        	header: [0x00, 0x00, 0x00, 0x00],
+        	length: 0_u64,
+        	payload: Vec::new(),
+        }
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct GreetingServerState {
+	response_code: u16,
+	status_message: String,
+	payload: String,
+}
+
+impl Debug for GreetingServerState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} - {}: {}",
+            self.response_code, self.status_message, self.payload
+        )
+    }
 }
