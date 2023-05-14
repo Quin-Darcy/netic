@@ -41,7 +41,7 @@ pub trait Protocol: Sized+Clone {
 	fn mutate_message(&self, message: &Message<Self>) -> Message<Self>;
 	fn crossover_messages(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>);
 	fn parse_response(&self, response: &Response) -> Self::ServerState;
-	fn parse_pcap(&self, pcap_file: &str) -> Vec<MessageSequence<Self>>;
+	fn parse_pcap(&self, pcap_file: &str, server_socket: &str) -> Vec<MessageSequence<Self>>;
 }
 
 /*

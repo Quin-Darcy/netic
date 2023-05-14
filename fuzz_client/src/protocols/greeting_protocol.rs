@@ -186,7 +186,7 @@ impl Protocol for GreetingProtocol {
 		}
 	}
 
-	fn parse_pcap(&self, pcap_file: &str, server_address: &str) -> Vec<MessageSequence<Self>> {
+	fn parse_pcap(&self, pcap_file: &str, server_socket: &str) -> Vec<MessageSequence<Self>> {
 		todo!();
 	}
 }
