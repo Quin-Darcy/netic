@@ -8,6 +8,7 @@ use std::hash::Hash;
 use std::collections::HashMap;
 use std::cmp::PartialEq;
 use std::fmt::Debug;
+use std::vec;
 use rand::Rng;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -22,6 +23,11 @@ use pnet::packet::tcp::TcpPacket;
 use std::net::Ipv4Addr;
 use rand;
 use rand::distributions::Alphanumeric;
+
+use pnet::packet::ip::IpNextHeaderProtocols;
+use pnet::packet::ethernet::EtherTypes;
+
+
 
 use crate::Protocol;
 use crate::Message;
@@ -83,7 +89,6 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
                 );
 
-                 // Call to random domain generator should be made here
                 sections.insert(
                     SMTPMessageSectionsKey::Domain,
                     SMTPMessageSectionsValue::DomainValue(String::from(" ")+&sender_domain+&"\r\n"),
@@ -95,7 +100,6 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
                 );
 
-                 // Call to random domain generator should be made here
                 sections.insert(
                     SMTPMessageSectionsKey::Domain,
                     SMTPMessageSectionsValue::DomainValue(String::from(" ")+&sender_domain+&"\r\n"),
@@ -107,7 +111,6 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
                 );
 
-                 // Call to random email generator should be made here
                 sections.insert(
                     SMTPMessageSectionsKey::EmailAddress,
                     SMTPMessageSectionsValue::EmailAddressValue(String::from(":<")+&sender_email_address+&">\r\n"),
@@ -119,7 +122,6 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
                 );
 
-                 // Call to random email generator should be made here
                 sections.insert(
                     SMTPMessageSectionsKey::EmailAddress,
                     SMTPMessageSectionsValue::EmailAddressValue(String::from(":<")+&recipient_email_address+&">\r\n"),
@@ -132,7 +134,6 @@ impl Protocol for SMTP {
                 );
             },
             SMTPMessageType::EMAIL_CONTENT => {
-                // Generate random From, To, and Subject fields.
                 let from = format!("From: <{}>\r\n", sender_email_address);
                 let to = format!("To: <{}>\r\n", recipient_email_address);
                 let subject = format!("Subject: {}{}\r\n", sender_domain, recipient_domain);
@@ -302,7 +303,17 @@ impl Protocol for SMTP {
                 );
             },
         };
-        todo!();
+
+        let response_time = 0.0;
+        let data = message_bytes.to_vec();
+
+        Message {
+            protocol: SMTP,
+            data,
+            message_type,
+            response_time,
+            sections,
+        }
     }
 
     fn mutate_message(&self, message: &Message<Self>) -> Message<Self> {
@@ -341,39 +352,45 @@ impl Protocol for SMTP {
             let packet_data = packet.data.to_owned();
             
             // Parse Ethernet, IP, and TCP headers to get application layer data.
-            let ethernet = EthernetPacket::new(&packet_data).unwrap();
+            let ethernet = EthernetPacket::new(&packet_data).unwrap();           
+
             let ip = Ipv4Packet::new(ethernet.payload()).unwrap();
-            let tcp = TcpPacket::new(ip.payload()).unwrap();
 
-            let dst_ip = ip.get_destination();
-            let dst_port = tcp.get_destination();
+            if let Some(tcp) = TcpPacket::new(ip.payload()) {
 
-            // Check if the packet is a request or response.
-            let is_request = dst_ip == server_address && dst_port == server_port;
+                let dst_ip = ip.get_destination();
+                let dst_port = tcp.get_destination();
 
-            // If the packet is a request, then we need to get the data from the TCP payload.
-            // We want to group the TCP payloads based on the TCP sequence number.
-            // After all the payloads with the same sequence number have been collected, we 
-            // can then combine them into a single payload and create a Message from it by 
-            // sending the combined data to the build_message method.
-            //
-            // We will use request_payloads HashMap to store the payloads. The key will be the sequence
-            // number and the value will be a vector of the payloads with that sequence number.
+                // Check if the packet is a request or response.
+                let is_request = dst_ip == server_address && dst_port == server_port;
 
-            if is_request {
-                let seq_num = tcp.get_sequence();
-                let payload = tcp.payload().to_owned();
+                // If the packet is a request, then we need to get the data from the TCP payload.
+                // We want to group the TCP payloads based on the TCP sequence number.
+                // After all the payloads with the same sequence number have been collected, we 
+                // can then combine them into a single payload and create a Message from it by 
+                // sending the combined data to the build_message method.
+                //
+                // We will use request_payloads HashMap to store the payloads. The key will be the sequence
+                // number and the value will be a vector of the payloads with that sequence number.
 
-                // Check if the sequence number is already in the map.
-                if let Some(payloads) = request_payloads.get_mut(&seq_num) {
-                    // If the sequence number is already in the map, then we need to append the payload to the existing vector.
-                    payloads.push(payload);
-                } else {
-                    // If the sequence number is not in the map, then we need to create a new vector and add it to the map.
-                    let payloads = vec![payload];
-                    request_payloads.insert(seq_num, payloads);
-                }
-            } 
+                if is_request {
+                    let seq_num = tcp.get_sequence();
+                    let payload = tcp.payload().to_owned();
+
+                    // Check if the sequence number is already in the map.
+                    if let Some(payloads) = request_payloads.get_mut(&seq_num) {
+                        // If the sequence number is already in the map, then we need to append the payload to the existing vector.
+                        payloads.push(payload);
+                    } else {
+                        // If the sequence number is not in the map, then we need to create a new vector and add it to the map.
+                        let payloads = vec![payload];
+                        request_payloads.insert(seq_num, payloads);
+                    }
+                } 
+            }
+            else {
+                continue;
+            }
         }
 
         // We can now combine the payload groups into a single payloads and create a Messages from it.
@@ -393,6 +410,36 @@ impl Protocol for SMTP {
         }
 
         let mut message_sequences: Vec<MessageSequence<Self>> = Vec::new();
+        let mut current_sequence: Vec<Message<Self>> = Vec::new();
+
+        // Iterate through the messages and use the MAIL_FROM command to denote the start of a new sequence.
+        // If the message is not a MAIL_FROM command, the message gets added to the current sequence. 
+        // Once a MAIL_FROM command is encountered, the current sequence is pushed to the message_sequences vector
+        // and a new sequence is started.
+        for message in messages {
+            match message.message_type {
+                SMTPMessageType::MAIL_FROM => {
+                    // If there's an ongoing sequence, push it to the sequences list
+                    if !current_sequence.is_empty() {
+                        let timings: Vec<f32> = vec![1.0; current_sequence.len()];
+                        message_sequences.push(MessageSequence::from_messages(current_sequence, timings));
+                    }
+                    // Start a new sequence with the current message
+                    current_sequence = vec![message];
+                }
+                _ => {
+                    // If it's not a MAIL FROM message, just add it to the current sequence
+                    current_sequence.push(message);
+                }
+            }
+        }
+
+        // Check if the last sequence is empty. If it's not empty, then add it to the message_sequences vector.
+        if !current_sequence.is_empty() {
+            let timings: Vec<f32> = vec![1.0; current_sequence.len()];
+            message_sequences.push(MessageSequence::from_messages(current_sequence, timings));
+        }
+
         message_sequences
     }
 }

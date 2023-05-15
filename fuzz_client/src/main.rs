@@ -9,12 +9,26 @@ use fuzz_client::SMTP;
 use fuzz_client::FuzzConfig;
 use fuzz_client::MessageSequence;
 use fuzz_client::TransportProtocol;
+use fuzz_client::Protocol;
 
 
 fn main() {
     // User-provided server address and transport protocol
     let server_address = String::from("127.0.0.1:8888");
     let transport_protocol: TransportProtocol = TransportProtocol::TCP;
+
+    let pcap_file = String::from("/home/arbegla/projects/rust/binaries/netic/resources/smtp.pcap");
+
+    let smtp_protocol = SMTP {};
+
+    let message_sequences = smtp_protocol.parse_pcap(&pcap_file, server_address.as_str());
+
+    for message_sequence in message_sequences {
+        for message in message_sequence.messages {
+            println!("{:?}", String::from_utf8_lossy(&message.data).to_string());
+        }
+    }
+    /* 
 
     // Create instance of Client
     let mut client = Client::new(server_address, transport_protocol, GreetingProtocol);
@@ -36,4 +50,6 @@ fn main() {
     };
 
     client.fuzz(config);
+
+    */
 }
