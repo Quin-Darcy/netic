@@ -1,6 +1,6 @@
 # Netic: Genetic Network Protocol Fuzzer
 
-This Rust program is a genetic fuzzer for testing protocol implementations. The fuzzer utilizes evolutionary algorithms and heuristics to generate test cases that can potentially uncover bugs in the target protocol implementation. The primary components of the fuzzer are message sequences, state models, and fitness evaluation.
+This Rust program is a genetic fuzzer for testing protocol implementations. The fuzzer utilizes an evolutionary algorithm and heuristics to generate protocol-specific message sequences that can potentially uncover bugs in the target protocol implementation.
 
 
 ### Overview
