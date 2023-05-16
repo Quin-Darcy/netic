@@ -31,7 +31,7 @@ After the specified number of generations have been created and tested, the fina
 
 * **State Model:** The program builds and updates a state model of the server based on the server's responses to message sequences. This helps guide the fuzzer towards new and unexplored states.
 
-* **Fitness Evaluation:** The fuzzer evaluates the fitness of message sequences based on various criteria, such as state coverage, state rarity, and rate of change per sequence. This allows the fuzzer to prioritize promising test cases.
+* **Fitness Evaluation:** The fuzzer evaluates the fitness of message sequences based on various criteria, such as state coverage, state rarity, rate of change per sequence, and server response time. This allows the fuzzer to prioritize promising test cases.
 
 * **Configuration:** The fuzzer provides a configurable framework with parameters for controlling the fuzzing process, such as selection pressure, mutation rate, crossover rate, message pool size, and state rarity threshold.
 
