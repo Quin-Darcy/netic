@@ -210,7 +210,7 @@ impl Protocol for SMTP {
         let potential_command = lines[0].split(" ").collect::<Vec<&str>>()[0];
 
         let message_type = if ["HELO", "EHLO", "MAIL FROM", "RCPT TO", "DATA", "QUIT", "RSET"].contains(&potential_command) {
-            match potential_command {
+            match potential_command.to_uppercase().as_str() {
                 "HELO" => SMTPMessageType::HELO,
                 "EHLO" => SMTPMessageType::EHLO,
                 "MAIL FROM" => SMTPMessageType::MAIL_FROM,
@@ -317,13 +317,27 @@ impl Protocol for SMTP {
     }
 
     fn mutate_message(&self, message: &Message<Self>) -> Message<Self> {
-        // Mutate the given message for your protocol and return the mutated message.
-        todo!();
+        // Randomly choose between byte-level or section-level mutation
+		let mut rng = rand::thread_rng();
+		let mutation_level = rng.gen_range(0..2);  
+
+		match mutation_level {
+			0 => mutate_bytes(message),
+			1 => mutate_sections(message),
+			_ => panic!("Unexpected mutation_level value"),
+		}
     }
 
     fn crossover_messages(&self, message1: &Message<Self>, message2: &Message<Self>) -> (Message<Self>, Message<Self>) {
-        // Perform crossover on the given messages for your protocol and return the resulting pair of messages.
-        todo!();
+		// Randomly choose between byte-level or section-level crossover
+		let mut rng = rand::thread_rng();
+		let crossover_level = rng.gen_range(0..2);
+
+		match crossover_level {
+			0 => crossover_bytes(message1, message2),
+			1 => crossover_sections(message1, message2),
+			_ => panic!("Unexpected crossover_level value"),
+		}
     }
 
     fn parse_response(&self, response: &Response) -> Self::ServerState {
@@ -352,12 +366,10 @@ impl Protocol for SMTP {
             let packet_data = packet.data.to_owned();
             
             // Parse Ethernet, IP, and TCP headers to get application layer data.
-            let ethernet = EthernetPacket::new(&packet_data).unwrap();           
-
-            let ip = Ipv4Packet::new(ethernet.payload()).unwrap();
+            let ethernet = EthernetPacket::new(&packet_data).unwrap();  
+            let ip = Ipv4Packet::new(ethernet.payload()).unwrap();         
 
             if let Some(tcp) = TcpPacket::new(ip.payload()) {
-
                 let dst_ip = ip.get_destination();
                 let dst_port = tcp.get_destination();
 
@@ -442,6 +454,100 @@ impl Protocol for SMTP {
 
         message_sequences
     }
+}
+
+// Mutation helper functions
+fn mutate_bytes(message: &Message<SMTP>) -> Message<SMTP> {
+	let mut rng = rand::thread_rng();
+	let mutation_type = rng.gen_range(0..5);
+
+	let mut mutated_data = message.data.clone();
+	let mutated_message: Message<SMTP>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+
+	match mutation_type {
+		0 => {
+			// Byte substitution
+			let byte_index = rng.gen_range(0..mutated_data.len());
+			let random_byte = rand::random::<u8>();
+			mutated_data[byte_index] = random_byte;
+		}
+		1 => {
+			// Byte insertion
+			let byte_index = rng.gen_range(0..=mutated_data.len());
+			let random_byte = rand::random::<u8>();
+			mutated_data.insert(byte_index, random_byte);
+		}
+		2 => {
+			// Byte deletion
+			if !mutated_data.is_empty() {
+				let byte_index = rng.gen_range(0..mutated_data.len());
+				mutated_data.remove(byte_index);
+			}
+		}
+		3 => {
+			// Byte swap
+			let byte_index1 = rng.gen_range(0..mutated_data.len());
+			let byte_index2 = rng.gen_range(0..mutated_data.len());
+
+			let temp_byte = mutated_data[byte_index1];
+			mutated_data[byte_index1] = mutated_data[byte_index2];
+			mutated_data[byte_index2] = temp_byte;
+		}
+		_ => {}
+	}
+
+	// Build new message from mutated_data
+	mutated_message = protocol_instance.build_message(&mutated_data);
+	return mutated_message;
+}
+
+fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
+}
+
+// Crossover helper functions
+fn crossover_bytes(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Message<SMTP>, Message<SMTP>) {
+	// Logic for two-point crossover 
+	let mut rng = rand::thread_rng();
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+
+	// Determine which parent's data vector hash more bytes
+	let (small_parent_data, big_parent_data) = if message1.data.len() < message2.data.len() {
+		(message1.data.clone(), message2.data.clone())
+	} else {
+		(message2.data.clone(), message1.data.clone())
+	};
+
+	let min_len = small_parent_data.len();
+	let max_len = big_parent_data.len();
+
+	let crossover_point1 = rng.gen_range(0..min_len);
+	let crossover_point2 = rng.gen_range(crossover_point1..min_len);
+
+	let mut small_offspring_data = small_parent_data.clone();
+	let mut big_offspring_data = big_parent_data.clone();
+
+	// This loop cross transplants the regions defined by the two crossover points
+	for i in crossover_point1..=crossover_point2 {
+		small_offspring_data[i] = big_parent_data[i];
+		big_offspring_data[i] = small_parent_data[i];
+	} 
+
+	let offspring1 = protocol_instance.build_message(&small_offspring_data);
+	let offspring2 = protocol_instance.build_message(&big_offspring_data);
+	
+	return (offspring1, offspring2);
+}
+
+fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Message<SMTP>, Message<SMTP>) {
+    todo!();
 }
 
 // Define your protocol-specific types below.
