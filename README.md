@@ -19,11 +19,11 @@ This Rust program is a genetic fuzzer for testing protocol implementations. The 
 
 5. Evolve the generation by applying selection, crossover, and mutation operations to create a new generation of message sequences.
 
-![program_diagram](./resources/full_diagram.png)
+![program_diagram](./resources/program_diagram.png)
 
 After the specified number of generations have been created and tested, the final state model is converted into a digraph which then can be converted to PNG or SVG
 
-![simple_state_model](./resources/simple_state_model.png)
+![simple_state_model](./resources/full_diagram.png)
 
 ### Notable Features
 
