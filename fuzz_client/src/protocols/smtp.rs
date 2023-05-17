@@ -506,7 +506,34 @@ fn mutate_bytes(message: &Message<SMTP>) -> Message<SMTP> {
 }
 
 fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
+    // TODO: Determine which message type we are mutating and this will dictate which sections
+    //       we can mutate. For example, we can't mutate the MAIL_FROM section of a DATA message.
+    match message.message_type {
+        SMTPMessageType::HELO => {
+            todo!();
+        }
+        SMTPMessageType::EHLO => {
+            todo!();
+        }
+        SMTPMessageType::MAIL_FROM => {
+            todo!();
+        }
+        SMTPMessageType::RCPT_TO => {
+            todo!();
+        }
+        SMTPMessageType::DATA => {
+            todo!();
+        }
+        SMTPMessageType::EMAIL_CONTENT => {
+            todo!();
+        }
+        SMTPMessageType::QUIT => {
+            todo!();
+        }
+        SMTPMessageType::RSET => {
+            todo!();
+        }
+    }
 }
 
 // Crossover helper functions
@@ -547,7 +574,41 @@ fn crossover_bytes(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Messa
 }
 
 fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Message<SMTP>, Message<SMTP>) {
-    todo!();
+    // TODO: Determine which message type we are crossing over and this will dictate which sections
+    //       we can cross over. For example, we can't cross over the MAIL_FROM section of a DATA message.
+    let message_type1 = message1.message_type.clone();
+    let message_type2 = message2.message_type.clone();
+
+    if message_type1 == message_type2 {
+        match message_type1 {
+            SMTPMessageType::HELO => {
+                todo!();
+            }
+            SMTPMessageType::EHLO => {
+                todo!();
+            }
+            SMTPMessageType::MAIL_FROM => {
+                todo!();
+            }
+            SMTPMessageType::RCPT_TO => {
+                todo!();
+            }
+            SMTPMessageType::DATA => {
+                todo!();
+            }
+            SMTPMessageType::EMAIL_CONTENT => {
+                todo!();
+            }
+            SMTPMessageType::QUIT => {
+                todo!();
+            }
+            SMTPMessageType::RSET => {
+                todo!();
+            }
+        }
+    } else {
+        todo!();
+    }
 }
 
 // Define your protocol-specific types below.
