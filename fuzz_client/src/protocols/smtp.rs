@@ -510,7 +510,7 @@ fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
     //       we can mutate. For example, we can't mutate the MAIL_FROM section of a DATA message.
     match message.message_type {
         SMTPMessageType::HELO => {
-            todo!();
+            mutate_helo_ehlo(&message)
         }
         SMTPMessageType::EHLO => {
             todo!();
@@ -609,6 +609,75 @@ fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Me
     } else {
         todo!();
     }
+}
+
+fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
+	let mut rng = rand::thread_rng();
+	let mutation_type = rng.gen_range(0..3);
+
+	let mut mutated_sections = message.sections.clone();
+	let mutated_message: Message<SMTP>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+
+	match mutation_type {
+		0 => {
+			// Command swap
+			let command_choice = rng.gen_range(0..6);
+
+			match command_choice {
+				0 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
+	    			);
+				}
+				1 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+	    			);
+				}
+				2 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
+	    			);
+				}
+				3 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
+	    			);
+				}
+				4 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("DATA")),
+	    			);
+				}
+				5 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+	    			);
+				}
+				_ => {}
+			}
+		}
+		1 => {
+            todo!();
+		}
+		2 => {
+            todo!();
+		}
+		_ => {}
+	}
+
+	todo!();
+
 }
 
 // Define your protocol-specific types below.
