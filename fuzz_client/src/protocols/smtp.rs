@@ -513,10 +513,10 @@ fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
             mutate_helo_ehlo(&message)
         }
         SMTPMessageType::EHLO => {
-            todo!();
+            mutate_helo_ehlo(&message)
         }
         SMTPMessageType::MAIL_FROM => {
-            todo!();
+            mutate_mail_from(&message)
         }
         SMTPMessageType::RCPT_TO => {
             todo!();
@@ -607,7 +607,7 @@ fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Me
             }
         }
     } else {
-        todo!();
+        return (message1.clone(), message2.clone());
     }
 }
 
@@ -621,11 +621,22 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 	// This instance is needed to access the methods within the Protocol implementation
 	// of SMTP
 	let protocol_instance = SMTP;
+    let mut command_string: String = match message.message_type {
+        SMTPMessageType::HELO => {
+            String::from("HELO")
+        }
+        SMTPMessageType::EHLO => {
+            String::from("EHLO")
+        }
+        _ => {
+            panic!("Invalid message type passed to mutate_helo_ehlo");
+        }
+    };
 
 	match mutation_type {
 		0 => {
 			// Command swap
-			let command_choice = rng.gen_range(0..6);
+			let command_choice = rng.gen_range(0..7);
 
 			match command_choice {
 				0 => {
@@ -633,51 +644,242 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 	        			SMTPMessageSectionsKey::Command,
 	        			SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
 	    			);
+                    command_string = String::from("HELO");
 				}
 				1 => {
 					mutated_sections.insert(
 	        			SMTPMessageSectionsKey::Command,
 	        			SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
 	    			);
+                    command_string = String::from("EHLO");
 				}
 				2 => {
 					mutated_sections.insert(
 	        			SMTPMessageSectionsKey::Command,
 	        			SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
 	    			);
+                    command_string = String::from("MAIL FROM");
 				}
 				3 => {
 					mutated_sections.insert(
 	        			SMTPMessageSectionsKey::Command,
 	        			SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
 	    			);
+                    command_string = String::from("RCPT TO");
 				}
 				4 => {
 					mutated_sections.insert(
 	        			SMTPMessageSectionsKey::Command,
 	        			SMTPMessageSectionsValue::CommandValue(String::from("DATA")),
 	    			);
+                    command_string = String::from("DATA");
 				}
 				5 => {
 					mutated_sections.insert(
 	        			SMTPMessageSectionsKey::Command,
-	        			SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+	        			SMTPMessageSectionsValue::CommandValue(String::from("QUIT")),
 	    			);
+                    command_string = String::from("QUIT");
+				}
+				6 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("RSET")),
+	    			);
+                    command_string = String::from("RSET");
 				}
 				_ => {}
 			}
 		}
 		1 => {
-            todo!();
+            // Swap byte in domain with non-utf8 character
+
+            // Select a random index in the domain and change it to a non-UTF8 character
+            let mut domain = match mutated_sections.get(&SMTPMessageSectionsKey::Domain) {
+                Some(SMTPMessageSectionsValue::DomainValue(domain_val)) => domain_val.clone(),
+                _ => panic!("Domain not found in message"),
+            };
+
+            let position = rng.gen_range(0..domain.len());
+            let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
+            domain.insert_str(position, &non_utf8_char.to_string());
+            mutated_sections.insert(SMTPMessageSectionsKey::Domain, SMTPMessageSectionsValue::DomainValue(domain.to_string()));
 		}
 		2 => {
-            todo!();
+            // Add more mutations here!
+            return message.clone();
 		}
-		_ => {}
+		_ => { 
+            return message.clone();
+        }
 	}
 
-	todo!();
+	// Build new message from mutated sections
 
+    let command = command_string.into_bytes();
+    let space = " ".to_string().into_bytes();
+    let domain = match mutated_sections.get(&SMTPMessageSectionsKey::Domain) {
+        Some(SMTPMessageSectionsValue::DomainValue(domain)) => domain.clone().into_bytes(),
+        _ => panic!("Domain not found in message"),
+    };
+
+    let new_data: Vec<u8> = [&command[..], &space[..], &domain[..]].concat();
+
+    mutated_message = protocol_instance.build_message(&new_data);
+	return mutated_message;
+}
+
+fn mutate_mail_from(message: &Message<SMTP>) -> Message<SMTP> {
+	let mut rng = rand::thread_rng();
+	let mutation_type = rng.gen_range(0..3);
+
+	let mut mutated_sections = message.sections.clone();
+	let mutated_message: Message<SMTP>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+    let mut command_string: String = String::from("MAIL FROM");
+
+	match mutation_type {
+		0 => {
+			// Command swap
+			let command_choice = rng.gen_range(0..7);
+
+			match command_choice {
+				0 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
+	    			);
+                    command_string = String::from("HELO");
+				}
+				1 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+	    			);
+                    command_string = String::from("EHLO");
+				}
+				2 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
+	    			);
+                    command_string = String::from("MAIL FROM");
+				}
+				3 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
+	    			);
+                    command_string = String::from("RCPT TO");
+				}
+				4 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("DATA")),
+	    			);
+                    command_string = String::from("DATA");
+				}
+				5 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("QUIT")),
+	    			);
+                    command_string = String::from("QUIT");
+				}
+				6 => {
+					mutated_sections.insert(
+	        			SMTPMessageSectionsKey::Command,
+	        			SMTPMessageSectionsValue::CommandValue(String::from("RSET")),
+	    			);
+                    command_string = String::from("RSET");
+				}
+				_ => {}
+			}
+		}
+		1 => {
+            // Swap byte in email address with non-utf8 character
+
+            // Select a random index in the email address and change it to a non-UTF8 character
+            let mut email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+                Some(SMTPMessageSectionsValue::EmailAddressValue(email_address_val)) => email_address_val.clone(),
+                _ => panic!("Email not found in message"),
+            };
+
+            let position = rng.gen_range(0..email_address.len());
+            let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
+            email_address.insert_str(position, &non_utf8_char.to_string());
+            mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address.to_string()));
+		}
+		2 => {
+            // Insert formatting mark in email address
+            let mark = rng.gen_range(0..4);
+            let mut email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+                Some(SMTPMessageSectionsValue::EmailAddressValue(email_address_val)) => email_address_val.clone(),
+                _ => panic!("Email not found in message"),
+            };
+
+            let position = rng.gen_range(0..email_address.len());
+
+            match mark {
+                0 => {
+                    email_address.insert_str(position, ":");
+                }
+                1 => {
+                    email_address.insert_str(position, "<");
+                }
+                2 => {
+                    email_address.insert_str(position, ">");
+                }
+                3 => {
+                    email_address.insert_str(position, "\r\n");
+                }
+                _ => {}
+            }
+
+            mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address.to_string()));
+		}
+		_ => { 
+            return message.clone();
+        }
+	}
+
+	// Build new message from mutated sections
+
+    let command = command_string.into_bytes();
+    let formatting_mark1 = ":<".to_string().into_bytes();
+    let formatting_mark2 = ">\r\n".to_string().into_bytes();
+    let email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+        Some(SMTPMessageSectionsValue::EmailAddressValue(email_address_val)) => email_address_val.clone().into_bytes(),
+        _ => panic!("Email address not found in message"),
+    };
+
+    let new_data: Vec<u8> = [&command[..], &formatting_mark1[..], &email_address[..], &formatting_mark2[..]].concat();
+
+    mutated_message = protocol_instance.build_message(&new_data);
+	return mutated_message;
+}
+
+fn mutate_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
+}
+
+fn mutate_data(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
+}
+
+fn mutate_email_content(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
+}   
+
+fn mutate_quit(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
+}
+
+fn mutate_rset(message: &Message<SMTP>) -> Message<SMTP> {
+    todo!();
 }
 
 // Define your protocol-specific types below.
