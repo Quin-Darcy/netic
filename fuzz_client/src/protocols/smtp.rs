@@ -27,8 +27,6 @@ use rand::distributions::Alphanumeric;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ethernet::EtherTypes;
 
-
-
 use crate::Protocol;
 use crate::Message;
 use crate::Response;
@@ -516,22 +514,22 @@ fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
             mutate_helo_ehlo(&message)
         }
         SMTPMessageType::MAIL_FROM => {
-            mutate_mail_from(&message)
+            mutate_mail_from_rcpt_to(&message)
         }
         SMTPMessageType::RCPT_TO => {
-            todo!();
+            mutate_mail_from_rcpt_to(&message)
         }
         SMTPMessageType::DATA => {
-            todo!();
+            mutate_command_only(&message)
         }
         SMTPMessageType::EMAIL_CONTENT => {
-            todo!();
+            mutate_email_content(&message)
         }
         SMTPMessageType::QUIT => {
-            todo!();
+            mutate_command_only(&message)
         }
         SMTPMessageType::RSET => {
-            todo!();
+            mutate_command_only(&message)
         }
     }
 }
@@ -729,7 +727,7 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 	return mutated_message;
 }
 
-fn mutate_mail_from(message: &Message<SMTP>) -> Message<SMTP> {
+fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 	let mut rng = rand::thread_rng();
 	let mutation_type = rng.gen_range(0..3);
 
@@ -739,7 +737,17 @@ fn mutate_mail_from(message: &Message<SMTP>) -> Message<SMTP> {
 	// This instance is needed to access the methods within the Protocol implementation
 	// of SMTP
 	let protocol_instance = SMTP;
-    let mut command_string: String = String::from("MAIL FROM");
+    let mut command_string: String = match message.message_type {
+        SMTPMessageType::MAIL_FROM => {
+            String::from("MAIL FROM")
+        }
+        SMTPMessageType::RCPT_TO => {
+            String::from("RCPT TO")
+        }
+        _ => {
+            panic!("Invalid message type passed to mutate_mail_from_rcpt_to");
+        }
+    };
 
 	match mutation_type {
 		0 => {
@@ -862,25 +870,134 @@ fn mutate_mail_from(message: &Message<SMTP>) -> Message<SMTP> {
 	return mutated_message;
 }
 
-fn mutate_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
-}
+fn mutate_command_only(message: &Message<SMTP>) -> Message<SMTP> {
+	let mut rng = rand::thread_rng();
 
-fn mutate_data(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
+	let mut mutated_sections = message.sections.clone();
+	let mutated_message: Message<SMTP>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+    let mut command_string: String = match message.message_type {
+        SMTPMessageType::DATA => {
+            String::from("DATA")
+        }
+        SMTPMessageType::QUIT => {
+            String::from("QUIT")
+        }
+        SMTPMessageType::RSET => {
+            String::from("RSET")
+        }
+        _ => {
+            panic!("Invalid message type passed to mutate_command_only");
+        }
+    };
+
+    // As the DATA, QUIT, and RSET commands only have one section, we can just mutate 
+    // the command section directly with a randomized command swap
+    let command_choice = rng.gen_range(0..7);
+
+    match command_choice {
+        0 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("HELO")),
+            );
+            command_string = String::from("HELO");
+        }
+        1 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("EHLO")),
+            );
+            command_string = String::from("EHLO");
+        }
+        2 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("MAIL FROM")),
+            );
+            command_string = String::from("MAIL FROM");
+        }
+        3 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("RCPT TO")),
+            );
+            command_string = String::from("RCPT TO");
+        }
+        4 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("DATA")),
+            );
+            command_string = String::from("DATA");
+        }
+        5 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("QUIT")),
+            );
+            command_string = String::from("QUIT");
+        }
+        6 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("RSET")),
+            );
+            command_string = String::from("RSET");
+        }
+        _ => {}
+    }
+
+	// Build new message from mutated sections
+
+    let command = command_string.into_bytes();
+    let crnl = "\r\n".to_string().into_bytes();
+    let new_data: Vec<u8> = [&command[..], &crnl].concat();
+
+    mutated_message = protocol_instance.build_message(&new_data);
+	return mutated_message;
 }
 
 fn mutate_email_content(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
+	let mut rng = rand::thread_rng();
+
+	let mut mutated_sections = message.sections.clone();
+	let mutated_message: Message<SMTP>;
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of SMTP
+	let protocol_instance = SMTP;
+
+    let mut email_content = match mutated_sections.get(&SMTPMessageSectionsKey::PlainText) {
+        Some(SMTPMessageSectionsValue::PlainTextValue(email_content_val)) => email_content_val.clone(),
+        _ => return message.clone(),
+    };
+
+    // Replace a randomly sized section of the email content with non-UTF8 characters
+    let start = rng.gen_range(0..email_content.len()-1);
+    let end = rng.gen_range(start..email_content.len());
+
+    for i in start..end {
+        let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
+        email_content.insert(i, non_utf8_char);
+    } 
+            
+    mutated_sections.insert(
+        SMTPMessageSectionsKey::PlainText,
+        SMTPMessageSectionsValue::PlainTextValue(email_content.clone()),
+    );
+
+	// Build new message from mutated sections
+
+    let email_data = email_content.clone().into_bytes();
+    let new_data: Vec<u8> = [&email_data[..]].concat();
+
+    mutated_message = protocol_instance.build_message(&new_data);
+	return mutated_message;
 }   
-
-fn mutate_quit(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
-}
-
-fn mutate_rset(message: &Message<SMTP>) -> Message<SMTP> {
-    todo!();
-}
 
 // Define your protocol-specific types below.
 
