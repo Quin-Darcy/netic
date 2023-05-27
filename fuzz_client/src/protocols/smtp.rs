@@ -235,10 +235,17 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from(message[0])),
                 );
 
-                sections.insert(
-                    SMTPMessageSectionsKey::Domain,
-                    SMTPMessageSectionsValue::DomainValue(String::from(" ") + message[1] + "\r\n"),
-                );
+                if message.len() > 1 {
+                    sections.insert(
+                        SMTPMessageSectionsKey::Domain,
+                        SMTPMessageSectionsValue::DomainValue(String::from(" ") + message[1] + "\r\n"),
+                    );
+                } else {
+                    sections.insert(
+                        SMTPMessageSectionsKey::Domain,
+                        SMTPMessageSectionsValue::DomainValue(String::from("\r\n")),
+                    );
+                }
             },
             SMTPMessageType::EHLO => {
                 let message = lines[0].split(" ").collect::<Vec<&str>>();
@@ -247,10 +254,17 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from(message[0])),
                 );
 
-                sections.insert(
-                    SMTPMessageSectionsKey::Domain,
-                    SMTPMessageSectionsValue::DomainValue(String::from(" ") + message[1] + "\r\n"),
-                );
+                if message.len() > 1 {
+                    sections.insert(
+                        SMTPMessageSectionsKey::Domain,
+                        SMTPMessageSectionsValue::DomainValue(String::from(" ") + message[1] + "\r\n"),
+                    );
+                } else {
+                    sections.insert(
+                        SMTPMessageSectionsKey::Domain,
+                        SMTPMessageSectionsValue::DomainValue(String::from("\r\n")),
+                    );
+                }
             },
             SMTPMessageType::MAIL_FROM => {
                 let message = lines[0].split(":").collect::<Vec<&str>>();
@@ -259,10 +273,17 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from(message[0])),
                 );
 
-                sections.insert(
-                    SMTPMessageSectionsKey::EmailAddress,
-                    SMTPMessageSectionsValue::EmailAddressValue(String::from(":") + message[1] + "\r\n"),
-                );
+                if message.len() > 1 {
+                    sections.insert(
+                        SMTPMessageSectionsKey::EmailAddress,
+                        SMTPMessageSectionsValue::EmailAddressValue(String::from(":") + message[1] + "\r\n"),
+                    );
+                } else {
+                    sections.insert(
+                        SMTPMessageSectionsKey::EmailAddress,
+                        SMTPMessageSectionsValue::EmailAddressValue(String::from("\r\n")),
+                    );
+                }
             },
             SMTPMessageType::RCPT_TO => {
                 let message = lines[0].split(":").collect::<Vec<&str>>();
@@ -271,10 +292,17 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from(message[0])),
                 );
 
-                sections.insert(
-                    SMTPMessageSectionsKey::EmailAddress,
-                    SMTPMessageSectionsValue::EmailAddressValue(String::from(":") + message[1] + "\r\n"),
-                );
+                if message.len() > 1 {
+                    sections.insert(
+                        SMTPMessageSectionsKey::EmailAddress,
+                        SMTPMessageSectionsValue::EmailAddressValue(String::from(":") + message[1] + "\r\n"),
+                    );
+                } else {
+                    sections.insert(
+                        SMTPMessageSectionsKey::EmailAddress,
+                        SMTPMessageSectionsValue::EmailAddressValue(String::from("\r\n")),
+                    );
+                }
             },
             SMTPMessageType::DATA => {
                 sections.insert(
