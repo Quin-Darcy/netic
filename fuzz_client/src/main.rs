@@ -20,10 +20,12 @@ fn main() {
     let transport_protocol: TransportProtocol = TransportProtocol::TCP;
     let target_protocol: SMTP = SMTP {};
 
-    let pcap_file = String::from("/home/arbegla/projects/rust/binaries/netic/resources/smtp_traffic.pcap");
+    let pcap_file = String::from("/home/arbegla/projects/rust/binaries/netic/resources/new_smtp.pcap");
+    let pcap_corpus = target_protocol.parse_pcap(pcap_file.as_str(), server_address.as_str());
 
     // Create instance of Client
     let mut client = Client::new(server_address, transport_protocol, target_protocol);
+    client.corpus = pcap_corpus;
 
     let config = FuzzConfig {
         generations: 45,

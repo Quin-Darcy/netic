@@ -33,12 +33,31 @@ impl Transport {
         }
     }
 
-    pub fn send(&mut self, message: &[u8]) {
-        match self {
-            Self::TCP(tcp_stream) => tcp_stream.write(message).expect("TCP: Failed to write to stream"),
-            Self::UDP(udp_socket) => udp_socket.send(message).expect("UDP: Failed to write to server:"),
-        };
-    }
+    pub fn send(&mut self, message: &[u8], server_address: &str) {
+        loop {
+            match self {
+                Self::TCP(tcp_stream) => {
+                    match tcp_stream.write(message) {
+                        Ok(_) => break,
+                        Err(e) => {
+                            eprintln!("TCP: Failed to write to stream: {}", e);
+                            *tcp_stream = TcpStream::connect(server_address).expect("TCP: Could not reconnect to server");
+                        }
+                    }
+                },
+                Self::UDP(udp_socket) => {
+                    match udp_socket.send(message) {
+                        Ok(_) => break,
+                        Err(e) => {
+                            eprintln!("UDP: Failed to write to server: {}", e);
+                            *udp_socket = UdpSocket::bind(server_address).expect("UDP: Could not reconnect to server");
+                            udp_socket.connect(server_address).expect("UDP: Could not reconnect to server");
+                        }
+                    }
+                }
+            };
+        }
+    }    
 
     pub fn receive(&mut self) -> Result<Response, std::io::Error> {
         match self {

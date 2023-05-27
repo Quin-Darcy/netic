@@ -204,20 +204,20 @@ impl Protocol for SMTP {
         // Split the message string into lines.
         let lines = message_string.split("\r\n").collect::<Vec<&str>>();
 
-        // message_bytes may or may not contain a command.
-        let potential_command = lines[0].split(" ").collect::<Vec<&str>>()[0];
-
-        let message_type = if ["HELO", "EHLO", "MAIL FROM", "RCPT TO", "DATA", "QUIT", "RSET"].contains(&potential_command) {
-            match potential_command.to_uppercase().as_str() {
-                "HELO" => SMTPMessageType::HELO,
-                "EHLO" => SMTPMessageType::EHLO,
-                "MAIL FROM" => SMTPMessageType::MAIL_FROM,
-                "RCPT TO" => SMTPMessageType::RCPT_TO,
-                "DATA" => SMTPMessageType::DATA,
-                "QUIT" => SMTPMessageType::QUIT,
-                "RSET" => SMTPMessageType::RSET,
-                _ => panic!("Invalid message type."),
-            }
+        let message_type = if lines[0].to_uppercase().starts_with("HELO") {
+            SMTPMessageType::HELO
+        } else if lines[0].to_uppercase().starts_with("EHLO") {
+            SMTPMessageType::EHLO
+        } else if lines[0].to_uppercase().starts_with("MAIL FROM") {
+            SMTPMessageType::MAIL_FROM
+        } else if lines[0].to_uppercase().starts_with("RCPT TO") {
+            SMTPMessageType::RCPT_TO
+        } else if lines[0].to_uppercase().starts_with("DATA") {
+            SMTPMessageType::DATA
+        } else if lines[0].to_uppercase().starts_with("QUIT") {
+            SMTPMessageType::QUIT
+        } else if lines[0].to_uppercase().starts_with("RSET") {
+            SMTPMessageType::RSET
         } else {
             // If we didn't find a known command, we assume it's the headers/body of an email.
             SMTPMessageType::EMAIL_CONTENT
@@ -340,7 +340,11 @@ impl Protocol for SMTP {
 
     fn parse_response(&self, response: &Response) -> Self::ServerState {
         // Parse the given response and return the corresponding server state for your protocol.
-        todo!();
+        let response_string = String::from_utf8_lossy(&response.data).to_string();
+        //println!("Response: {}", &response_string);
+        SMTPServerState {
+            response_string,
+        }
     }
 
     // This method takes a path to a file path to a pcap file as an argument and extracts out 
@@ -553,6 +557,10 @@ fn crossover_bytes(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Messa
 	let min_len = small_parent_data.len();
 	let max_len = big_parent_data.len();
 
+    if min_len == 0 {
+        return (message1.clone(), message2.clone());
+    }
+
 	let crossover_point1 = rng.gen_range(0..min_len);
 	let crossover_point2 = rng.gen_range(crossover_point1..min_len);
 
@@ -572,41 +580,131 @@ fn crossover_bytes(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Messa
 }
 
 fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Message<SMTP>, Message<SMTP>) {
-    // TODO: Determine which message type we are crossing over and this will dictate which sections
-    //       we can cross over. For example, we can't cross over the MAIL_FROM section of a DATA message.
-    let message_type1 = message1.message_type.clone();
-    let message_type2 = message2.message_type.clone();
-
-    if message_type1 == message_type2 {
-        match message_type1 {
-            SMTPMessageType::HELO => {
-                todo!();
-            }
-            SMTPMessageType::EHLO => {
-                todo!();
-            }
-            SMTPMessageType::MAIL_FROM => {
-                todo!();
-            }
-            SMTPMessageType::RCPT_TO => {
-                todo!();
-            }
-            SMTPMessageType::DATA => {
-                todo!();
-            }
-            SMTPMessageType::EMAIL_CONTENT => {
-                todo!();
-            }
-            SMTPMessageType::QUIT => {
-                todo!();
-            }
-            SMTPMessageType::RSET => {
-                todo!();
-            }
-        }
-    } else {
+    if message1.message_type != message2.message_type {
         return (message1.clone(), message2.clone());
     }
+
+    let mut rng = rand::thread_rng();
+
+	// This instance is needed to access the methods within the Protocol implementation
+	// of GreetingProtocol
+	let protocol_instance = SMTP;
+    
+    let mut offspring1_sections = HashMap::new();
+    let mut offspring2_sections = HashMap::new();
+
+    // Construct the offsprings' sections by going through each key and deciding if the value
+    // for that key should come from the first or second parent. Which ever choice is made, the other
+    // offspring receives the value from the opposite parent
+    match message1.message_type {
+        SMTPMessageType::HELO | SMTPMessageType::EHLO => {
+            for key in &[SMTPMessageSectionsKey::Command, SMTPMessageSectionsKey::Domain] {
+                if rng.gen_bool(0.5) {
+                    offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                } else {
+                    offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                }
+            };
+        },
+        SMTPMessageType::MAIL_FROM | SMTPMessageType::RCPT_TO => {
+            for key in &[SMTPMessageSectionsKey::Command, SMTPMessageSectionsKey::EmailAddress] {
+                if rng.gen_bool(0.5) {
+                    offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                } else {
+                    offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                }
+            };
+        },
+        SMTPMessageType::DATA | SMTPMessageType::QUIT | SMTPMessageType::RSET => {
+            for key in &[SMTPMessageSectionsKey::Command] {
+                if rng.gen_bool(0.5) {
+                    offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                } else {
+                    offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                }
+            };
+        },
+        SMTPMessageType::EMAIL_CONTENT => {
+            for key in &[SMTPMessageSectionsKey::PlainText] {
+                if rng.gen_bool(0.5) {
+                    offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                } else {
+                    offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                }
+            };
+        },
+    };
+
+    // This closure assembles the data for the offspring by going through the respective sections 
+    // which were just populated and collection all the information into a byte array which is sent
+    // over to protocol_instance.build_message, returning an instance of Message.
+    let build_offspring = |message_type: &SMTPMessageType, sections: HashMap<SMTPMessageSectionsKey, SMTPMessageSectionsValue>| {
+        match message_type {
+            SMTPMessageType::HELO | SMTPMessageType::EHLO => {
+                let command = match sections.get(&SMTPMessageSectionsKey::Command) {
+                    Some(SMTPMessageSectionsValue::CommandValue(command)) => command.clone().into_bytes(),
+                    _ => panic!("Expected a CommandValue in sections."),
+                };
+                let space = " ".to_string().into_bytes();
+                let domain = match sections.get(&SMTPMessageSectionsKey::Domain) {
+                    Some(SMTPMessageSectionsValue::DomainValue(domain)) => domain.clone().into_bytes(),
+                    _ => panic!("Expected a DomainValue in sections."),
+                };
+                let formatting_mark = "\r\n".to_string().into_bytes();
+        
+                let new_data: Vec<u8> = [&command[..], &space[..], &domain[..], &formatting_mark[..]].concat();
+                protocol_instance.build_message(&new_data)
+            },
+            SMTPMessageType::MAIL_FROM | SMTPMessageType::RCPT_TO => {
+                let command = match sections.get(&SMTPMessageSectionsKey::Command) {
+                    Some(SMTPMessageSectionsValue::CommandValue(command)) => command.clone().into_bytes(),
+                    _ => panic!("Expected a CommandValue in sections."),
+                };
+                let formatting_mark1 = ":<".to_string().into_bytes();
+                let email_address = match sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+                    Some(SMTPMessageSectionsValue::EmailAddressValue(email_address)) => email_address.clone().into_bytes(),
+                    _ => panic!("Expected a EmailAddressValue in sections."),
+                };
+                let formatting_mark2 = ">\r\n".to_string().into_bytes();
+
+                let new_data: Vec<u8> = [&command[..], &formatting_mark1[..], &email_address[..], &formatting_mark2[..]].concat();
+                protocol_instance.build_message(&new_data)
+            },
+            SMTPMessageType::DATA | SMTPMessageType::QUIT | SMTPMessageType::RSET => {
+                let command = match sections.get(&SMTPMessageSectionsKey::Command) {
+                    Some(SMTPMessageSectionsValue::CommandValue(command)) => command.clone().into_bytes(),
+                    _ => panic!("Expected a CommandValue in sections."),
+                };
+                let formatting_mark = "\r\n".to_string().into_bytes();
+        
+                let new_data: Vec<u8> = [&command[..], &formatting_mark[..]].concat();
+                protocol_instance.build_message(&new_data)
+            },
+            SMTPMessageType::EMAIL_CONTENT => {
+                let plain_text = match sections.get(&SMTPMessageSectionsKey::PlainText) {
+                    Some(SMTPMessageSectionsValue::PlainTextValue(plain_text)) => plain_text.clone().into_bytes(),
+                    _ => panic!("Expected a PlainTextValue in sections."),
+                };
+                let formatting_mark = "\r\n.\r\n".to_string().into_bytes();
+        
+                let new_data: Vec<u8> = [&plain_text[..], &formatting_mark[..]].concat();
+                protocol_instance.build_message(&new_data)
+            }
+        }
+    };
+
+    let offspring1 = build_offspring(&message1.message_type, offspring1_sections);
+    let offspring2 = build_offspring(&message1.message_type, offspring2_sections);
+
+    (offspring1, offspring2)
 }
 
 fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
@@ -720,8 +818,9 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
         Some(SMTPMessageSectionsValue::DomainValue(domain)) => domain.clone().into_bytes(),
         _ => panic!("Domain not found in message"),
     };
+    let crnl = "\r\n".to_string().into_bytes();
 
-    let new_data: Vec<u8> = [&command[..], &space[..], &domain[..]].concat();
+    let new_data: Vec<u8> = [&command[..], &space[..], &domain[..], &crnl[..]].concat();
 
     mutated_message = protocol_instance.build_message(&new_data);
 	return mutated_message;
@@ -976,27 +1075,34 @@ fn mutate_email_content(message: &Message<SMTP>) -> Message<SMTP> {
         _ => return message.clone(),
     };
 
-    // Replace a randomly sized section of the email content with non-UTF8 characters
-    let start = rng.gen_range(0..email_content.len()-1);
-    let end = rng.gen_range(start..email_content.len());
+    let email_content_length = email_content.len();
 
-    for i in start..end {
-        let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-        email_content.insert(i, non_utf8_char);
-    } 
-            
-    mutated_sections.insert(
-        SMTPMessageSectionsKey::PlainText,
-        SMTPMessageSectionsValue::PlainTextValue(email_content.clone()),
-    );
+    if email_content_length == 0 {
+        return message.clone();
+    } else {
+        // Replace a randomly sized section of the email content with non-UTF8 characters
+        let start = rng.gen_range(0..email_content.len()-1);
+        let end = rng.gen_range(start..email_content.len());
 
-	// Build new message from mutated sections
+        for i in start..end {
+            let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
+            email_content.insert(i, non_utf8_char);
+        } 
+                
+        mutated_sections.insert(
+            SMTPMessageSectionsKey::PlainText,
+            SMTPMessageSectionsValue::PlainTextValue(email_content.clone()),
+        );
 
-    let email_data = email_content.clone().into_bytes();
-    let new_data: Vec<u8> = [&email_data[..]].concat();
+        // Build new message from mutated sections
 
-    mutated_message = protocol_instance.build_message(&new_data);
-	return mutated_message;
+        let email_data = email_content.clone().into_bytes();
+        let formatting_mark = "\r\n.\r\n".to_string().into_bytes();
+        let new_data: Vec<u8> = [&email_data[..], &formatting_mark[..]].concat();
+
+        mutated_message = protocol_instance.build_message(&new_data);
+        return mutated_message;
+    }
 }   
 
 // Define your protocol-specific types below.
@@ -1053,6 +1159,7 @@ impl Default for SMTPMessageSectionsValue {
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct SMTPServerState {
     // Fields which make up structure of SMTP's server responses
+    pub response_string: String,
 }
 
 impl Debug for SMTPServerState {

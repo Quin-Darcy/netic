@@ -27,6 +27,7 @@ use crate::Transport;
 use crate::TransportProtocol;
 
 use crate::GreetingProtocol;
+use crate::SMTP;
 
 
 pub struct FuzzConfig {
@@ -98,7 +99,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	}
 
 	fn send_message(&mut self, transport: &mut Transport, message: &Message<P>) {
-	    transport.send(&message.data);
+		let msg = String::from_utf8_lossy(&message.data).to_string();
+		println!("Sending message: {}", msg);
+	    transport.send(&message.data, &self.server_address);
 	}
 
 	fn read_response(&mut self, transport: &mut Transport) -> Result<Response, std::io::Error> {
@@ -247,6 +250,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		// Selection pressure determines the tournament size
 		// The higher the pressure, the more biased the selection process
 		// is to selecting fitter individuals
+
 		let num_parents: usize = self.corpus.len();
 		let tournament_size: usize = (selection_pressure * (self.corpus.len() as f32)) as usize;
 
