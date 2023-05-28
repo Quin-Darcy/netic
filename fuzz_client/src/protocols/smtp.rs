@@ -172,6 +172,30 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from("RSET\r\n")),
                 );
             }
+            SMTPMessageType::VRFY => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("VRFY \r\n")),
+                );
+            },
+            SMTPMessageType::EXPN => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("EXPN \r\n")),
+                );
+            },
+            SMTPMessageType::HELP => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("HELP \r\n")),
+                );
+            },
+            SMTPMessageType::NOOP => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from("NOOP \r\n")),
+                );
+            },
         }
 
         let response_time = 0.0;
@@ -218,6 +242,14 @@ impl Protocol for SMTP {
             SMTPMessageType::QUIT
         } else if lines[0].to_uppercase().starts_with("RSET") {
             SMTPMessageType::RSET
+        } else if lines[0].to_uppercase().starts_with("VRFY") {
+            SMTPMessageType::VRFY
+        } else if lines[0].to_uppercase().starts_with("EXPN") {
+            SMTPMessageType::EXPN
+        } else if lines[0].to_uppercase().starts_with("HELP") {
+            SMTPMessageType::HELP
+        } else if lines[0].to_uppercase().starts_with("NOOP") {
+            SMTPMessageType::NOOP
         } else {
             // If we didn't find a known command, we assume it's the headers/body of an email.
             SMTPMessageType::EMAIL_CONTENT
@@ -328,6 +360,30 @@ impl Protocol for SMTP {
                     SMTPMessageSectionsValue::CommandValue(String::from(lines[0]) + "\r\n"),
                 );
             },
+            SMTPMessageType::VRFY => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from(lines[0]) + " \r\n"),
+                );
+            },
+            SMTPMessageType::EXPN => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from(lines[0]) + " \r\n"),
+                );
+            },
+            SMTPMessageType::HELP => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from(lines[0]) + " \r\n"),
+                );
+            },
+            SMTPMessageType::NOOP => {
+                sections.insert(
+                    SMTPMessageSectionsKey::Command,
+                    SMTPMessageSectionsValue::CommandValue(String::from(lines[0]) + " \r\n"),
+                );
+            },
         };
 
         let response_time = 0.0;
@@ -366,14 +422,29 @@ impl Protocol for SMTP {
 		}
     }
 
-    fn parse_response(&self, response: &Response) -> Self::ServerState {
-        // Parse the given response and return the corresponding server state for your protocol.
+    fn parse_response(&self, response: &Response) -> SMTPServerState {
         let response_string = String::from_utf8_lossy(&response.data).to_string();
-        //println!("Response: {}", &response_string);
+        println!("    Response: {}", &response_string);
+        
+        // Try to split the response string by the first whitespace or hyphen
+        let mut parts = response_string.splitn(2, |c| c == ' ' || c == '-');
+        let status_code = parts.next().unwrap_or("").parse::<u16>().unwrap_or(0);
+        let message = parts.next().unwrap_or("").to_string();
+    
+        // Remove specific command name from error messages
+        let message_parts: Vec<&str> = message.split('"').collect();
+        let generic_message = if message_parts.len() > 2 {
+            String::from("Error: command not recognized")
+        } else {
+            message.clone()
+        };
+    
         SMTPServerState {
-            response_string,
+            status_code,
+            message: generic_message,
         }
     }
+     
 
     // This method takes a path to a file path to a pcap file as an argument and extracts out 
     // the SMTP messages from the pcap file, then processes the messages in order to determine
@@ -498,6 +569,10 @@ fn mutate_bytes(message: &Message<SMTP>) -> Message<SMTP> {
 	// of SMTP
 	let protocol_instance = SMTP;
 
+    if mutated_data.len() == 0 {
+        return message.clone();
+    }
+
 	match mutation_type {
 		0 => {
 			// Byte substitution
@@ -561,6 +636,18 @@ fn mutate_sections(message: &Message<SMTP>) -> Message<SMTP> {
             mutate_command_only(&message)
         }
         SMTPMessageType::RSET => {
+            mutate_command_only(&message)
+        }
+        SMTPMessageType::VRFY => {
+            mutate_command_only(&message)
+        }
+        SMTPMessageType::EXPN => {
+            mutate_command_only(&message)
+        }
+        SMTPMessageType::HELP => {
+            mutate_command_only(&message)
+        }
+        SMTPMessageType::NOOP => {
             mutate_command_only(&message)
         }
     }
@@ -669,6 +756,17 @@ fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Me
                 }
             };
         },
+        SMTPMessageType::VRFY | SMTPMessageType::EXPN | SMTPMessageType::HELP | SMTPMessageType::NOOP => {
+            for key in &[SMTPMessageSectionsKey::Command] {
+                if rng.gen_bool(0.5) {
+                    offspring1_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                } else {
+                    offspring1_sections.insert(key.clone(), message2.sections.get(key).unwrap().clone());
+                    offspring2_sections.insert(key.clone(), message1.sections.get(key).unwrap().clone());
+                }
+            };
+        },
     };
 
     // This closure assembles the data for the offspring by going through the respective sections 
@@ -725,7 +823,17 @@ fn crossover_sections(message1: &Message<SMTP>, message2: &Message<SMTP>) -> (Me
         
                 let new_data: Vec<u8> = [&plain_text[..], &formatting_mark[..]].concat();
                 protocol_instance.build_message(&new_data)
-            }
+            },
+            SMTPMessageType::VRFY | SMTPMessageType::EXPN | SMTPMessageType::HELP | SMTPMessageType::NOOP => {
+                let command = match sections.get(&SMTPMessageSectionsKey::Command) {
+                    Some(SMTPMessageSectionsValue::CommandValue(command)) => command.clone().into_bytes(),
+                    _ => panic!("Expected a CommandValue in sections."),
+                };
+                let formatting_mark = " \r\n".to_string().into_bytes();
+        
+                let new_data: Vec<u8> = [&command[..], &formatting_mark[..]].concat();
+                protocol_instance.build_message(&new_data)
+            },
         }
     };
 
@@ -760,7 +868,7 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 	match mutation_type {
 		0 => {
 			// Command swap
-			let command_choice = rng.gen_range(0..7);
+			let command_choice = rng.gen_range(0..11);
 
 			match command_choice {
 				0 => {
@@ -812,6 +920,34 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 	    			);
                     command_string = String::from("RSET");
 				}
+                7 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("VRFY")),
+        			);
+                    command_string = String::from("VRFY");
+                }
+                8 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("EXPN")),
+        			);
+                    command_string = String::from("EXPN");
+                }
+                9 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("HELP")),
+        			);
+                    command_string = String::from("HELP");
+                }
+                10 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("NOOP")),
+        			);
+                    command_string = String::from("NOOP");
+                }
 				_ => {}
 			}
 		}
@@ -879,7 +1015,7 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 	match mutation_type {
 		0 => {
 			// Command swap
-			let command_choice = rng.gen_range(0..7);
+			let command_choice = rng.gen_range(0..11);
 
 			match command_choice {
 				0 => {
@@ -931,6 +1067,34 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 	    			);
                     command_string = String::from("RSET");
 				}
+                7 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("VRFY")),
+        			);
+                    command_string = String::from("VRFY");
+                }
+                8 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("EXPN")),
+        			);
+                    command_string = String::from("EXPN");
+                }
+                9 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("HELP")),
+        			);
+                    command_string = String::from("HELP");
+                }
+                10 => {
+                    mutated_sections.insert(
+            			SMTPMessageSectionsKey::Command,
+            			SMTPMessageSectionsValue::CommandValue(String::from("NOOP")),
+        			);
+                    command_string = String::from("NOOP");
+                }
 				_ => {}
 			}
 		}
@@ -1016,6 +1180,18 @@ fn mutate_command_only(message: &Message<SMTP>) -> Message<SMTP> {
         SMTPMessageType::RSET => {
             String::from("RSET")
         }
+        SMTPMessageType::VRFY => {
+            String::from("VRFY")
+        }
+        SMTPMessageType::EXPN => {
+            String::from("EXPN")
+        }
+        SMTPMessageType::HELP => {
+            String::from("HELP")
+        }
+        SMTPMessageType::NOOP => {
+            String::from("NOOP")
+        }
         _ => {
             panic!("Invalid message type passed to mutate_command_only");
         }
@@ -1023,7 +1199,7 @@ fn mutate_command_only(message: &Message<SMTP>) -> Message<SMTP> {
 
     // As the DATA, QUIT, and RSET commands only have one section, we can just mutate 
     // the command section directly with a randomized command swap
-    let command_choice = rng.gen_range(0..7);
+    let command_choice = rng.gen_range(0..11);
 
     match command_choice {
         0 => {
@@ -1075,16 +1251,57 @@ fn mutate_command_only(message: &Message<SMTP>) -> Message<SMTP> {
             );
             command_string = String::from("RSET");
         }
+        7 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("VRFY")),
+            );
+            command_string = String::from("VRFY");
+        }
+        8 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("EXPN")),
+            );
+            command_string = String::from("EXPN");
+        }
+        9 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("HELP")),
+            );
+            command_string = String::from("HELP");
+        }
+        10 => {
+            mutated_sections.insert(
+                SMTPMessageSectionsKey::Command,
+                SMTPMessageSectionsValue::CommandValue(String::from("NOOP")),
+            );
+            command_string = String::from("NOOP");
+        }
         _ => {}
     }
 
 	// Build new message from mutated sections
 
     let command = command_string.into_bytes();
-    let crnl = "\r\n".to_string().into_bytes();
-    let new_data: Vec<u8> = [&command[..], &crnl].concat();
 
-    mutated_message = protocol_instance.build_message(&new_data);
+    match message.message_type {
+        SMTPMessageType::DATA | SMTPMessageType::QUIT | SMTPMessageType::RSET => {
+            let crnl = "\r\n".to_string().into_bytes();
+            let new_data: Vec<u8> = [&command[..], &crnl].concat();
+            mutated_message = protocol_instance.build_message(&new_data);
+        }
+        SMTPMessageType::VRFY | SMTPMessageType::EXPN | SMTPMessageType::HELP | SMTPMessageType::NOOP => {
+            let crnl = " \r\n".to_string().into_bytes();
+            let new_data: Vec<u8> = [&command[..], &crnl].concat();
+            mutated_message = protocol_instance.build_message(&new_data);
+        }
+        _ => {
+            panic!("Invalid message type passed to mutate_command_only");
+        }
+    };
+
 	return mutated_message;
 }
 
@@ -1108,14 +1325,20 @@ fn mutate_email_content(message: &Message<SMTP>) -> Message<SMTP> {
     if email_content_length == 0 {
         return message.clone();
     } else {
-        // Replace a randomly sized section of the email content with non-UTF8 characters
-        let start = rng.gen_range(0..email_content.len()-1);
-        let end = rng.gen_range(start..email_content.len());
+        // convert the string into Vec<char>
+        let mut email_content_chars: Vec<char> = email_content.chars().collect();
+
+        // then replace a randomly sized section of the email content with non-UTF8 characters
+        let start = rng.gen_range(0..email_content_chars.len());
+        let end = rng.gen_range(start..email_content_chars.len());
 
         for i in start..end {
             let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-            email_content.insert(i, non_utf8_char);
-        } 
+            email_content_chars[i] = non_utf8_char;
+        }
+
+        // convert the Vec<char> back into a String
+        email_content = email_content_chars.into_iter().collect();
                 
         mutated_sections.insert(
             SMTPMessageSectionsKey::PlainText,
@@ -1145,6 +1368,10 @@ pub enum SMTPMessageType {
     EMAIL_CONTENT,
     QUIT,
     RSET,
+    VRFY,
+    EXPN,
+    HELP,
+    NOOP,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -1187,18 +1414,16 @@ impl Default for SMTPMessageSectionsValue {
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct SMTPServerState {
     // Fields which make up structure of SMTP's server responses
-    pub response_string: String,
+    pub status_code: u16,
+    pub message: String,
 }
 
 impl Debug for SMTPServerState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        /*
         write!(
             f,
-            "{} - {}: {}",
-            self.field1, self.field2, self.field3, etc
+            "{} \n {}",
+            self.status_code, self.message
         )
-        */
-        todo!();
     }
 }

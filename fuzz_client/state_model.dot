@@ -1,359 +1,124 @@
 digraph state_graph {
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Invalid state transition"
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Invalid state transition"
-    "200 - OK: Goodbye, client!" -> "200 - OK: The time is now."
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Goodbye, client!" -> "200 - OK: Hello, client!"
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Goodbye, client!" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Header mismatch" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Header mismatch" -> "200 - OK: The time is now."
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Header mismatch" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: Goodbye, client!"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: The time is now."
-    "400 - ERROR: Non-UTF8 sequence" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Non-UTF8 sequence" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Hello, client!"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response3"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response3"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: The time is now."
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response2" -> "200 - OK: Goodbye, client!"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "200 - OK: The time is now."
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized payload" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Unrecognized payload" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Unrecognized payload" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Unrecognized payload" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response4" -> "200 - OK: Secret Response4"
-    "200 - OK: Secret Response4" -> "200 - OK: Secret Response4"
-    "200 - OK: Secret Response4" -> "200 - OK: Secret Response4"
-    "200 - OK: Secret Response4" -> "200 - OK: The time is now."
-    "200 - OK: Secret Response1" -> "200 - OK: Hello, client!"
-    "200 - OK: Secret Response1" -> "200 - OK: Goodbye, client!"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: The time is now."
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response2"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: Secret Response1" -> "200 - OK: Secret Response1"
-    "200 - OK: The time is now." -> "200 - OK: The time is now."
-    "200 - OK: The time is now." -> "200 - OK: Goodbye, client!"
-    "200 - OK: The time is now." -> "400 - ERROR: Invalid state transition"
-    "200 - OK: The time is now." -> "400 - ERROR: Invalid state transition"
-    "200 - OK: The time is now." -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: The time is now." -> "400 - ERROR: Invalid state transition"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "400 - ERROR: Invalid payload length"
-    "200 - OK: The time is now." -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "200 - OK: Secret Response1"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "200 - OK: Secret Response1"
-    "200 - OK: The time is now." -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: The time is now." -> "200 - OK: Secret Response1"
-    "200 - OK: The time is now." -> "400 - ERROR: Header mismatch"
-    "200 - OK: The time is now." -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: The time is now." -> "400 - ERROR: Unrecognized header"
-    "200 - OK: The time is now." -> "200 - OK: Secret Response1"
-    "400 - ERROR: Unrecognized header" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized header" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Unrecognized header" -> "200 - OK: The time is now."
-    "400 - ERROR: Unrecognized header" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Unrecognized header" -> "400 - ERROR: Invalid state transition"
-    "200 - OK: Secret Response3" -> "200 - OK: The time is now."
-    "200 - OK: Secret Response3" -> "200 - OK: Secret Response3"
-    "200 - OK: Secret Response3" -> "200 - OK: Secret Response3"
-    "200 - OK: Hello, client!" -> "200 - OK: Goodbye, client!"
-    "200 - OK: Hello, client!" -> "200 - OK: The time is now."
-    "200 - OK: Hello, client!" -> "400 - ERROR: Header mismatch"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Header mismatch"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Non-UTF8 sequence"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Unrecognized payload"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Header mismatch"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Unrecognized header"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "200 - OK: Hello, client!" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: The time is now."
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Goodbye, client!"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "200 - OK: Secret Response1"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid state transition" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "200 - OK: The time is now."
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid state transition"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized header"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Non-UTF8 sequence"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Header mismatch"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Invalid payload length"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
-    "400 - ERROR: Invalid payload length" -> "400 - ERROR: Unrecognized payload"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Syntax: VRFY <address>"
+    "500  Error: bad syntax" -> "500  Error: command not recognized" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: bad syntax" [dir="both"]
+    "250  OK" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Syntax: QUIT"
+    "250  ARCH-DSK-01.localdomain" -> "250  8BITMIME"
+    "501  Syntax: HELO hostname" -> "250  OK"
+    "501  Syntax: HELO hostname" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "501  Syntax: VRFY <address>" -> "501  Syntax: QUIT"
+    "503  Error: need MAIL command" -> "0  " [dir="both"]
+    "500  Error: command not recognized" -> "503  Error: need MAIL command" [dir="both"]
+    "500  Error: command not recognized" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "501  Syntax: HELO hostname" -> "503  Error: send HELO first" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  OK"
+    "503  Error: send HELO first" -> "501  Syntax: HELO hostname" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "501  Syntax: HELO hostname"
+    "501  Syntax: HELO hostname" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: command not recognized" -> "503  Error: send HELO first" [dir="both"]
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Syntax: QUIT" [dir="both"]
+    "503  Error: send HELO first" -> "250  OK"
+    "250  HELP" -> "503  Error: need RCPT command"
+    "503  Error: send HELO first" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: need RCPT command" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "503  Error: send HELO first" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "250  ARCH-DSK-01.localdomain" -> "500  Error: command not recognized" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "503  Error: send HELO first" [dir="both"]
+    "221  Bye" -> "0  "
+    "501  Syntax: QUIT" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: bad syntax" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Syntax: EHLO hostname"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "500  Error: bad syntax" -> "221  Bye"
+    "0  " -> "503  Error: need MAIL command" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "503  Error: send HELO first" -> "501  Syntax: RSET"
+    "500  Error: command not recognized" -> "501  Syntax: QUIT" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "250  ARCH-DSK-01.localdomain"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "221  Bye" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "503  Error: need MAIL command"
+    "500  Error: command not recognized" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "503  Error: need MAIL command" -> "500  Error: command not recognized" [dir="both"]
+    "0  " -> "0  " [dir="both"]
+    "501  Syntax: HELO hostname" -> "501  Syntax: HELO hostname" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "250  OK"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first"
+    "250  ARCH-DSK-01.localdomain" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "501  Syntax: VRFY <address>" -> "500  Error: bad syntax"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: QUIT"
+    "500  Error: command not recognized" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "503  Error: send HELO first" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "500  Error: bad syntax" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: bad syntax" -> "503  Error: need MAIL command"
+    "503  Error: need RCPT command" -> "503  Error: need RCPT command" [dir="both"]
+    "500  Error: command not recognized" -> "500  Error: bad syntax" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "250  HELP"
+    "500  Error: command not recognized" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "502  EXPN not implemented" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "503  Error: need RCPT command"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "0  "
+    "503  Error: send HELO first" -> "501  Syntax: QUIT" [dir="both"]
+    "501  Syntax: QUIT" -> "503  Error: send HELO first" [dir="both"]
+    "250  SIZE 33554432" -> "503  Error: need RCPT command"
+    "250  8BITMIME" -> "503  Error: need MAIL command"
+    "503  Error: send HELO first" -> "503  Error: send HELO first" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: bad syntax"
+    "501  Syntax: HELO hostname" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "0  " -> "501  Syntax: QUIT"
+    "500  Error: bad syntax" -> "503  Error: send HELO first" [dir="both"]
+    "503  Error: send HELO first" -> "221  Bye"
+    "250  OK" -> "221  Bye"
+    "501  Syntax: RSET" -> "500  Error: command not recognized"
+    "500  Error: command not recognized" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "0  "
+    "500  Error: command not recognized" -> "501  Syntax: VRFY <address>"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: VRFY <address>"
+    "0  " -> "500  Error: bad syntax"
+    "503  Error: need RCPT command" -> "221  Bye"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "221  Bye"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "0  " [dir="both"]
+    "250  OK" -> "500  Error: bad syntax"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: HELO hostname"
+    "250  ARCH-DSK-01.localdomain" -> "502  EXPN not implemented" [dir="both"]
+    "501  Syntax: HELO hostname" -> "500  Error: bad syntax"
+    "250  SIZE 33554432" -> "503  Error: need MAIL command"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
+    "500  Error: command not recognized" -> "221  Bye"
+    "501  Syntax: HELO hostname" -> "502  EXPN not implemented"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "502  EXPN not implemented"
+    "503  Error: send HELO first" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "221  Bye"
+    "0  " -> "500  Error: command not recognized"
+    "503  Error: need MAIL command" -> "503  Error: need RCPT command"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: bad syntax"
+    "502  5.5.1 Too many unrecognized commands, goodbye." -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
+    "500  Error: bad syntax" -> "502  EXPN not implemented"
+    "250  ARCH-DSK-01.localdomain" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: bad syntax" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "503  Error: send HELO first" -> "500  Error: bad syntax" [dir="both"]
+    "501  Syntax: QUIT" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: command not recognized" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "501  Syntax: QUIT" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "500  Error: command not recognized" -> "501  Syntax: HELO hostname" [dir="both"]
+    "0  " -> "250  ARCH-DSK-01.localdomain"
+    "502  EXPN not implemented" -> "500  Error: command not recognized"
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: QUIT" [dir="both"]
+    "501  Syntax: HELO hostname" -> "221  Bye"
+    "502  EXPN not implemented" -> "503  Error: send HELO first"
+    "501  Syntax: HELO hostname" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "503  Error: send HELO first" -> "501  Syntax: EHLO hostname"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "501  Syntax: VRFY <address>"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "221  Bye" [dir="both"]
+    "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "500  Error: command not recognized"
+    "250  OK" -> "501  Syntax: QUIT"
+    "250  OK" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "250  ARCH-DSK-01.localdomain" -> "250  SIZE 33554432"
 }

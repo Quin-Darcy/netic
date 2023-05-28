@@ -40,7 +40,8 @@ impl Transport {
                     match tcp_stream.write(message) {
                         Ok(_) => break,
                         Err(e) => {
-                            eprintln!("TCP: Failed to write to stream: {}", e);
+                            eprintln!("    TCP: Failed to write to stream: {}", e);
+                            println!("    TCP: Reconnecting to server...");
                             *tcp_stream = TcpStream::connect(server_address).expect("TCP: Could not reconnect to server");
                         }
                     }

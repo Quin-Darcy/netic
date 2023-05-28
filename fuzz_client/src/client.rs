@@ -100,7 +100,6 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
 	fn send_message(&mut self, transport: &mut Transport, message: &Message<P>) {
 		let msg = String::from_utf8_lossy(&message.data).to_string();
-		println!("Sending message: {}", msg);
 	    transport.send(&message.data, &self.server_address);
 	}
 

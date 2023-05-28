@@ -130,6 +130,10 @@ impl<P: Protocol> MessageSequence<P> {
         let min_len = small_parent.messages.len();
         let max_len = big_parent.messages.len();
 
+        if min_len == 0 {
+            return (small_parent, big_parent);
+        }
+
         let crossover_point1 = rng.gen_range(0..min_len);
         let crossover_point2 = rng.gen_range(crossover_point1..min_len);
 
