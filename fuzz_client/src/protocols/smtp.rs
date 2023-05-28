@@ -955,15 +955,20 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
             // Swap byte in domain with non-utf8 character
 
             // Select a random index in the domain and change it to a non-UTF8 character
-            let mut domain = match mutated_sections.get(&SMTPMessageSectionsKey::Domain) {
+            let domain_value = match mutated_sections.get(&SMTPMessageSectionsKey::Domain) {
                 Some(SMTPMessageSectionsValue::DomainValue(domain_val)) => domain_val.clone(),
                 _ => panic!("Domain not found in message"),
             };
 
-            let position = rng.gen_range(0..domain.len());
+            let mut domain_vec: Vec<char> = domain_value.chars().collect();
+
+            let position = rng.gen_range(0..domain_vec.len());
             let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-            domain.insert_str(position, &non_utf8_char.to_string());
-            mutated_sections.insert(SMTPMessageSectionsKey::Domain, SMTPMessageSectionsValue::DomainValue(domain.to_string()));
+            domain_vec.insert(position, non_utf8_char);
+
+            let domain = domain_vec.into_iter().collect::<String>();
+            mutated_sections.insert(SMTPMessageSectionsKey::Domain, SMTPMessageSectionsValue::DomainValue(domain));
+
 		}
 		2 => {
             // Add more mutations here!
@@ -1102,15 +1107,19 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
             // Swap byte in email address with non-utf8 character
 
             // Select a random index in the email address and change it to a non-UTF8 character
-            let mut email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+            let email_address_value = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
                 Some(SMTPMessageSectionsValue::EmailAddressValue(email_address_val)) => email_address_val.clone(),
                 _ => panic!("Email not found in message"),
             };
 
-            let position = rng.gen_range(0..email_address.len());
+            let mut email_address_vec: Vec<char> = email_address_value.chars().collect();
+
+            let position = rng.gen_range(0..email_address_vec.len());
             let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-            email_address.insert_str(position, &non_utf8_char.to_string());
-            mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address.to_string()));
+            email_address_vec.insert(position, non_utf8_char);
+
+            let email_address = email_address_vec.into_iter().collect::<String>();
+            mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address));
 		}
 		2 => {
             // Insert formatting mark in email address

@@ -4,6 +4,7 @@
 #![allow(unused_assignments)]
 
 
+use std::cmp::min;
 use std::str;
 use std::thread;
 use std::hash::Hash;
@@ -13,6 +14,9 @@ use std::time::{Instant, Duration};
 use std::collections::HashMap;
 use std::net::{TcpStream, Shutdown};
 use std::io::{self, BufRead, BufReader, Write};
+
+use std::error::Error;
+use csv::Writer;
 
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
@@ -399,18 +403,29 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    self.mutate_corpus(sequence_mutation_rate, message_mutation_rate);
 	}
 
-	fn display_average_fitness(&mut self) {
-		let mut average_fitness: f32 = 0.0;
+	fn get_fitness_stats(&mut self) -> (f32, f32, f32) {
+		let mut total_fitness: f32 = 0.0;
+		let mut min_fitness: f32 = f32::MAX;
+		let mut max_fitness: f32 = f32::MIN;
 
-		for i in 0..self.corpus.len() {
-			average_fitness += self.corpus[i].fitness;
+		for individual in &self.corpus {
+			total_fitness += individual.fitness;
+			min_fitness = min_fitness.min(individual.fitness);
+			max_fitness = max_fitness.max(individual.fitness);
 		}
 
-		average_fitness = average_fitness / self.corpus.len() as f32;
+		let average_fitness = total_fitness / self.corpus.len() as f32;
 		println!("    AVERAGE FITNESS: {:?}", average_fitness);
+
+		return (min_fitness, average_fitness, max_fitness);
 	}
 
 	pub fn fuzz(&mut self, config: FuzzConfig) {
+		// Initialize a CSV writer that writes into a file named "fitness.csv"
+		let mut wtr = Writer::from_path("../resources/fitness.csv").unwrap();
+
+		// Write the header
+		wtr.write_record(&["generation", "min_fitness", "average_fitness", "max_fitness"]).unwrap();
 
 		for j in 0..config.generations {
 			println!("GENERATION {}", j);
@@ -457,7 +472,14 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			// the tournaments run. This represents the pre-mutated and pre-crossed over new generation
 			let mating_pool: Vec<usize> = self.tournament_selection(config.selection_pressure);
 
-			self.display_average_fitness();
+			// Get fitness stats and save them to CSV.
+			let (min_fitness, avg_fitness, max_fitness) = self.get_fitness_stats();
+			wtr.write_record(&[
+				j.to_string(),
+				min_fitness.to_string(),
+				avg_fitness.to_string(),
+				max_fitness.to_string(),
+			]).unwrap();
 
 			// Apply crossover and mutation on the corpus to create the new generation
 			self.create_new_generation(&mating_pool, config.sequence_crossover_rate, config.sequence_mutation_rate, 
@@ -466,6 +488,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
 		// After running the fuzzer...
 		let dot_string = self.state_model.to_dot_string();
-		std::fs::write("state_model.dot", dot_string).expect("Unable to write to file");
+		std::fs::write("../resources/state_model.dot", dot_string).expect("Unable to write to file");
+
+		// Flush the writer to ensure all records are written to the file.
+		wtr.flush().unwrap();
 	}
 }

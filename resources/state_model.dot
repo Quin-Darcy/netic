@@ -1,0 +1,18 @@
+digraph state_graph {
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first"
+    "503  Error: send HELO first" -> "500  Error: command not recognized"
+    "503  Error: send HELO first" -> "0  "
+    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
+    "250  ARCH-DSK-01.localdomain" -> "221  Bye"
+    "500  Error: command not recognized" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "250  ARCH-DSK-01.localdomain"
+    "250  ARCH-DSK-01.localdomain" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
+    "0  " -> "500  Error: command not recognized" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized"
+    "221  Bye" -> "0  "
+    "503  Error: send HELO first" -> "503  Error: send HELO first" [dir="both"]
+    "503  Error: send HELO first" -> "221  Bye"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "221  Bye"
+    "500  Error: command not recognized" -> "0  " [dir="both"]
+}
