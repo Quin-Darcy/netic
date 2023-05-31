@@ -457,6 +457,8 @@ impl Protocol for SMTP {
         let server_address = server_ip_str.parse::<Ipv4Addr>().unwrap();
         let server_port = server_socket.split(":").collect::<Vec<_>>()[1].parse::<u16>().unwrap();
 
+        println!("server_ip: {:?}", server_ip_str);
+
         // HashMap to store the payloads of each request.
         let mut request_payloads: HashMap<u32, Vec<Vec<u8>>> = HashMap::new();
 
@@ -1124,29 +1126,33 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 		2 => {
             // Insert formatting mark in email address
             let mark = rng.gen_range(0..4);
-            let mut email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
+            let email_address = match mutated_sections.get(&SMTPMessageSectionsKey::EmailAddress) {
                 Some(SMTPMessageSectionsValue::EmailAddressValue(email_address_val)) => email_address_val.clone(),
                 _ => panic!("Email not found in message"),
             };
+
+            let mut email_address_vec: Vec<char> = email_address.chars().collect();
 
             let position = rng.gen_range(0..email_address.len());
 
             match mark {
                 0 => {
-                    email_address.insert_str(position, ":");
+                    email_address_vec.insert(position, ':');
                 }
                 1 => {
-                    email_address.insert_str(position, "<");
+                    email_address_vec.insert(position, '<');
                 }
                 2 => {
-                    email_address.insert_str(position, ">");
+                    email_address_vec.insert(position, '>');
                 }
                 3 => {
-                    email_address.insert_str(position, "\r\n");
+                    email_address_vec.insert(position, '\r');
+                    email_address_vec.insert(position + 1, '\n');
                 }
                 _ => {}
             }
 
+            let email_address = email_address_vec.into_iter().collect::<String>();
             mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address.to_string()));
 		}
 		_ => { 
