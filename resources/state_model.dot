@@ -1,18 +1,35 @@
 digraph state_graph {
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  OK"
     "503  Error: send HELO first" -> "500  Error: command not recognized"
-    "503  Error: send HELO first" -> "0  "
-    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
-    "250  ARCH-DSK-01.localdomain" -> "221  Bye"
-    "500  Error: command not recognized" -> "500  Error: command not recognized" [dir="both"]
-    "503  Error: send HELO first" -> "250  ARCH-DSK-01.localdomain"
-    "250  ARCH-DSK-01.localdomain" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
-    "0  " -> "500  Error: command not recognized" [dir="both"]
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized"
-    "221  Bye" -> "0  "
+    "250  ARCH-DSK-01.localdomain" -> "503  Error: need MAIL command" [dir="both"]
     "503  Error: send HELO first" -> "503  Error: send HELO first" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "250  8BITMIME"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: bad syntax"
+    "0  " -> "503  Error: send HELO first" [dir="both"]
     "503  Error: send HELO first" -> "221  Bye"
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "221  Bye"
-    "500  Error: command not recognized" -> "0  " [dir="both"]
+    "503  Error: need RCPT command" -> "0  "
+    "503  Error: send HELO first" -> "0  " [dir="both"]
+    "221  Bye" -> "0  " [dir="both"]
+    "250  OK" -> "503  Error: send HELO first"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
+    "250  8BITMIME" -> "0  "
+    "503  Error: send HELO first" -> "501  Syntax: EHLO hostname"
+    "0  " -> "250  ARCH-DSK-01.localdomain"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized" [dir="both"]
+    "0  " -> "221  Bye" [dir="both"]
+    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first"
+    "221  Bye" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
+    "503  Error: need MAIL command" -> "221  Bye"
+    "503  Error: need MAIL command" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "250  8BITMIME" -> "221  Bye"
+    "250  ARCH-DSK-01.localdomain" -> "503  Error: need RCPT command"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "0  " [dir="both"]
+    "0  " -> "0  " [dir="both"]
+    "500  Error: bad syntax" -> "503  Error: send HELO first" [dir="both"]
+    "500  Error: command not recognized" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "503  Error: send HELO first" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: bad syntax" -> "500  Error: bad syntax" [dir="both"]
+    "503  Error: need RCPT command" -> "503  Error: need RCPT command" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "500  Error: bad syntax"
 }

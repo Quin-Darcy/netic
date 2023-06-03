@@ -457,8 +457,6 @@ impl Protocol for SMTP {
         let server_address = server_ip_str.parse::<Ipv4Addr>().unwrap();
         let server_port = server_socket.split(":").collect::<Vec<_>>()[1].parse::<u16>().unwrap();
 
-        println!("server_ip: {:?}", server_ip_str);
-
         // HashMap to store the payloads of each request.
         let mut request_payloads: HashMap<u32, Vec<Vec<u8>>> = HashMap::new();
 

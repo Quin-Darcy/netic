@@ -28,7 +28,7 @@ fn main() {
     client.corpus = pcap_corpus;
 
     let config = FuzzConfig {
-        generations: 1200,
+        generations: 2,
         selection_pressure: 0.75,
         sequence_mutation_rate: 0.4,
         sequence_crossover_rate: 0.7,
