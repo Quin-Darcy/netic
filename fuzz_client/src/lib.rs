@@ -6,10 +6,13 @@ mod response;
 mod state_transition;
 mod state_model;
 mod transport;
+mod optimization;
 
 pub use protocols::Protocol;
 pub use protocols::GreetingProtocol;
 pub use protocols::SMTP;
+
+pub use optimization::Swarm;
 
 pub use transport::{Transport, TransportProtocol};
 pub use message::Message;

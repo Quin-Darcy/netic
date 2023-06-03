@@ -12,6 +12,8 @@ use fuzz_client::FuzzConfig;
 use fuzz_client::MessageSequence;
 use fuzz_client::TransportProtocol;
 use fuzz_client::Protocol;
+use fuzz_client::Swarm;
+
 
 
 fn main() {

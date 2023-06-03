@@ -14,9 +14,10 @@ use std::time::{Instant, Duration};
 use std::collections::HashMap;
 use std::net::{TcpStream, Shutdown};
 use std::io::{self, BufRead, BufReader, Write};
-
 use std::error::Error;
+
 use csv::Writer;
+use csv::Reader;
 
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
@@ -33,7 +34,7 @@ use crate::TransportProtocol;
 use crate::GreetingProtocol;
 use crate::SMTP;
 
-
+#[derive(Debug, Clone)]
 pub struct FuzzConfig {
 	pub generations: usize,
 	pub selection_pressure: f32,
@@ -418,6 +419,32 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		println!("    AVERAGE FITNESS: {:?}", average_fitness);
 
 		return (min_fitness, average_fitness, max_fitness);
+	}
+
+	pub fn evaluate(&mut self) -> f32 {
+		// Calculate the slope of the best fit line which passes through the points recorded in the fitness.csv file
+		let mut rdr = Reader::from_path("../resources/fitness.csv").unwrap();
+		let mut x: Vec<f32> = Vec::new();
+		let mut y: Vec<f32> = Vec::new();
+
+		for result in rdr.records() {
+			let record = result.unwrap();
+			x.push(record[0].parse::<f32>().unwrap());
+			y.push(record[2].parse::<f32>().unwrap());
+		}
+
+        let n = x.len() as f32;
+
+        // calculate sums
+        let sum_x: f32 = x.iter().sum();
+        let sum_y: f32 = y.iter().sum();
+        let sum_x_squared: f32 = x.iter().map(|&v| v.powi(2)).sum();
+        let sum_xy: f32 = x.iter().zip(y.iter()).map(|(&xi, &yi)| xi * yi).sum();
+
+        // apply the formula to calculate the slope
+        let slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x.powi(2));
+
+        slope
 	}
 
 	pub fn fuzz(&mut self, config: FuzzConfig) {
