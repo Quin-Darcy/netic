@@ -149,9 +149,12 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	            thread::sleep(sleep_duration);
 	        }
 	    }
+
+		/* 
 	    if let Err(e) = transport.shutdown() {
 	        eprintln!("Error shutting down transport: {}", e);
 	    }
+		*/
 	    message_response
 	}
 
@@ -272,7 +275,11 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         	tournament.truncate(tournament_size);
 
 	        // Initialize a best index and best fitness
-	        let mut best_index: usize = tournament[0];
+			let mut best_index: usize = 0;
+			if tournament.len() != 0 {
+				best_index = tournament[0];
+			} 
+
 	        let mut best_fitness: f32 = self.corpus[best_index].fitness;
 
 	        // Loop through the indices in the tournament and compare the best
@@ -404,7 +411,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	    self.mutate_corpus(sequence_mutation_rate, message_mutation_rate);
 	}
 
-	fn get_fitness_stats(&mut self) -> (f32, f32, f32) {
+	fn get_fitness_stats(&mut self, print_flag: bool) -> (f32, f32, f32) {
 		let mut total_fitness: f32 = 0.0;
 		let mut min_fitness: f32 = f32::MAX;
 		let mut max_fitness: f32 = f32::MIN;
@@ -416,13 +423,16 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		}
 
 		let average_fitness = total_fitness / self.corpus.len() as f32;
-		println!("    AVERAGE FITNESS: {:?}", average_fitness);
+
+		if print_flag {
+			println!("    AVERAGE FITNESS: {:?}", average_fitness);
+		}
 
 		return (min_fitness, average_fitness, max_fitness);
 	}
 
 	pub fn evaluate(&mut self) -> f32 {
-		// Calculate the slope of the best fit line which passes through the points recorded in the fitness.csv file
+		// Calculate the slope of the best fit line which passes through the average fitness points recorded in the fitness.csv file
 		let mut rdr = Reader::from_path("../resources/fitness.csv").unwrap();
 		let mut x: Vec<f32> = Vec::new();
 		let mut y: Vec<f32> = Vec::new();
@@ -447,7 +457,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         slope
 	}
 
-	pub fn fuzz(&mut self, config: FuzzConfig) {
+	pub fn fuzz(&mut self, config: FuzzConfig, print_flag: bool) {
 		// Initialize a CSV writer that writes into a file named "fitness.csv"
 		let mut wtr = Writer::from_path("../resources/fitness.csv").unwrap();
 
@@ -455,7 +465,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 		wtr.write_record(&["generation", "min_fitness", "average_fitness", "max_fitness"]).unwrap();
 
 		for j in 0..config.generations {
-			println!("GENERATION {}", j);
+			if print_flag {
+				println!("GENERATION {}", j);
+			}
 
 			let corpus_len: usize = self.corpus.len();
 			let mut message_sequence: MessageSequence<P>;
@@ -463,6 +475,12 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			let mut corpus_trace: Vec<Vec<(Message<P>, Response)>> = Vec::new();
 
 			let mut rng = rand::thread_rng();
+
+			// Iterate over the corpus and run each MessageSequence
+
+			if print_flag {
+				println!("    RUNNING CORPUS ...");
+			}
 
 			for i in 0..corpus_len {
 				message_sequence = self.corpus[i].clone();
@@ -482,6 +500,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			}
 
 			// Process the the corpus_trace to get the ServerStates needed to update the StateModel
+			if print_flag {
+				println!("    PROCESSING CORPUS TRACE AND UPDATING STATE MODEL ...");
+			}
 			let (state_transitions, unique_server_states_visited): (Vec<StateTransition<P::ServerState, P>>, Vec<usize>) = self.process_trace(&corpus_trace[..]);
 			self.update_state_model(state_transitions);
 
@@ -489,6 +510,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
         	let rare_server_states = self.identify_rare_server_states(config.state_rarity_threshold);
 
         	// Compute fitness of each MessageSequence in the corpus
+			if print_flag {
+				println!("    COMPUTING FITNESSES ...");
+			}
         	let mut corpus_clone = self.corpus.clone();
         	self.evaluate_fitness(&mut corpus_clone, &corpus_trace, &unique_server_states_visited, &rare_server_states, 
         						  config.state_coverage_weight, config.response_time_weight, config.state_roc_weight, config.state_rarity_weight);
@@ -500,7 +524,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			let mating_pool: Vec<usize> = self.tournament_selection(config.selection_pressure);
 
 			// Get fitness stats and save them to CSV.
-			let (min_fitness, avg_fitness, max_fitness) = self.get_fitness_stats();
+			let (min_fitness, avg_fitness, max_fitness) = self.get_fitness_stats(print_flag);
 			wtr.write_record(&[
 				j.to_string(),
 				min_fitness.to_string(),
@@ -509,6 +533,9 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 			]).unwrap();
 
 			// Apply crossover and mutation on the corpus to create the new generation
+			if print_flag {
+				println!("    CREATING NEW GENERATION ...");
+			}
 			self.create_new_generation(&mating_pool, config.sequence_crossover_rate, config.sequence_mutation_rate, 
 									   config.message_crossover_rate, config.message_mutation_rate);
 		}

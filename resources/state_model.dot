@@ -1,35 +1,173 @@
 digraph state_graph {
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  OK"
-    "503  Error: send HELO first" -> "500  Error: command not recognized"
-    "250  ARCH-DSK-01.localdomain" -> "503  Error: need MAIL command" [dir="both"]
-    "503  Error: send HELO first" -> "503  Error: send HELO first" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: bad syntax" [dir="both"]
     "250  ARCH-DSK-01.localdomain" -> "250  8BITMIME"
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: bad syntax"
+    "250  ARCH-DSK-01.localdomain" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "252  Cannot VRFY user, but will accept message and attempt delivery" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "250  OK" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "503  Error: send HELO first" [dir="both"]
     "0  " -> "503  Error: send HELO first" [dir="both"]
-    "503  Error: send HELO first" -> "221  Bye"
-    "503  Error: need RCPT command" -> "0  "
-    "503  Error: send HELO first" -> "0  " [dir="both"]
-    "221  Bye" -> "0  " [dir="both"]
-    "250  OK" -> "503  Error: send HELO first"
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
-    "250  8BITMIME" -> "0  "
-    "503  Error: send HELO first" -> "501  Syntax: EHLO hostname"
-    "0  " -> "250  ARCH-DSK-01.localdomain"
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized" [dir="both"]
-    "0  " -> "221  Bye" [dir="both"]
-    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first"
-    "221  Bye" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
-    "503  Error: need MAIL command" -> "221  Bye"
-    "503  Error: need MAIL command" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
-    "250  8BITMIME" -> "221  Bye"
-    "250  ARCH-DSK-01.localdomain" -> "503  Error: need RCPT command"
-    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "0  " [dir="both"]
+    "501  Syntax: HELO hostname" -> "501  Syntax: VRFY <address>"
+    "503  Error: send HELO first" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "501  Syntax: QUIT" -> "500  Error: bad syntax"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "252  Cannot VRFY user, but will accept message and attempt delivery" [dir="both"]
+    "501  Syntax: QUIT" -> "500  Error: command not recognized"
+    "250  ARCH-DSK-01.localdomain" -> "221  Bye"
+    "501  Syntax: VRFY <address>" -> "500  Error: bad syntax" [dir="both"]
+    "250  OK" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "250  OK" -> "250  OK" [dir="both"]
     "0  " -> "0  " [dir="both"]
-    "500  Error: bad syntax" -> "503  Error: send HELO first" [dir="both"]
-    "500  Error: command not recognized" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
-    "503  Error: send HELO first" -> "500  Error: bad syntax" [dir="both"]
+    "0  " -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "502  EXPN not implemented" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: MAIL FROM: <address>"
+    "250  ARCH-DSK-01.localdomain" -> "501  Syntax: VRFY <address>"
+    "500  Error: bad syntax" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "502  EXPN not implemented" -> "250  OK" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "500  Error: bad syntax" [dir="both"]
+    "250  OK" -> "500  Error: bad syntax" [dir="both"]
+    "250  OK" -> "501  Syntax: HELO hostname" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "252  Cannot VRFY user, but will accept message and attempt delivery"
+    "250  OK" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "500  Error: command not recognized" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "501  Syntax: MAIL FROM: <address>"
+    "502  EXPN not implemented" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: QUIT"
+    "502  5.5.1 Too many unrecognized commands, goodbye." -> "0  "
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "221  Bye" [dir="both"]
+    "503  Error: send HELO first" -> "502  EXPN not implemented" [dir="both"]
+    "500  Error: bad syntax" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "502  EXPN not implemented" -> "503  Error: send HELO first" [dir="both"]
+    "502  EXPN not implemented" -> "500  Error: command not recognized" [dir="both"]
+    "501  Syntax: HELO hostname" -> "502  EXPN not implemented" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "252  Cannot VRFY user, but will accept message and attempt delivery"
+    "501  Syntax: HELO hostname" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "0  " -> "221  Bye" [dir="both"]
+    "500  Error: bad syntax" -> "252  Cannot VRFY user, but will accept message and attempt delivery" [dir="both"]
+    "503  Error: send HELO first" -> "501  Syntax: HELO hostname" [dir="both"]
+    "250  OK" -> "221  Bye"
+    "501  Syntax: MAIL FROM: <address> [SP <mail-parameters>]" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
+    "501  Syntax: EHLO hostname" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "501  Syntax: HELO hostname" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "502  EXPN not implemented"
+    "503  Error: send HELO first" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "503  Error: send HELO first" -> "0  " [dir="both"]
+    "502  EXPN not implemented" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "501  Syntax: HELO hostname" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "221  Bye" -> "0  " [dir="both"]
+    "250  OK" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: RSET" [dir="both"]
+    "500  Error: command not recognized" -> "501  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY"
+    "500  Error: command not recognized" -> "501  Syntax: HELO hostname" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "500  Error: command not recognized" -> "500  Error: command not recognized" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: command not recognized" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "500  Error: command not recognized" -> "502  EXPN not implemented" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "503  Error: send HELO first" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "502  EXPN not implemented" -> "502  EXPN not implemented" [dir="both"]
+    "503  Error: send HELO first" -> "221  Bye"
+    "502  EXPN not implemented" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "500  Error: bad syntax" -> "250  OK" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "501  Syntax: HELO hostname" [dir="both"]
+    "502  EXPN not implemented" -> "501  Syntax: HELO hostname" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "221  Bye"
+    "501  Syntax: QUIT" -> "503  Error: send HELO first"
+    "500  Error: bad syntax" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "252  Cannot VRFY user, but will accept message and attempt delivery" -> "502  EXPN not implemented" [dir="both"]
     "500  Error: bad syntax" -> "500  Error: bad syntax" [dir="both"]
-    "503  Error: need RCPT command" -> "503  Error: need RCPT command" [dir="both"]
-    "501  Syntax: EHLO hostname" -> "500  Error: bad syntax"
+    "501  Syntax: HELO hostname" -> "503  Error: send HELO first" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "503  Error: send HELO first" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: command not recognized" [dir="both"]
+    "503  Error: send HELO first" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: command not recognized" -> "252  Cannot VRFY user, but will accept message and attempt delivery" [dir="both"]
+    "252  Cannot VRFY user, but will accept message and attempt delivery" -> "500  Error: bad syntax" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "503  Error: send HELO first" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "0  " [dir="both"]
+    "500  Error: command not recognized" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "553  5.1.3 Error: malformed address"
+    "501  Syntax: VRFY <address>" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "500  Error: bad syntax" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "503  Error: send HELO first" -> "252  Cannot VRFY user, but will accept message and attempt delivery"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: HELO hostname"
+    "250  ARCH-DSK-01.localdomain" -> "252  Cannot VRFY user, but will accept message and attempt delivery"
+    "503  Error: send HELO first" -> "500  Error: command not recognized" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "221  Bye"
+    "500  Error: bad syntax" -> "502  EXPN not implemented" [dir="both"]
+    "501  Syntax: RSET" -> "500  Error: bad syntax" [dir="both"]
+    "502  EXPN not implemented" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "500  Error: command not recognized" -> "250  OK" [dir="both"]
+    "503  Error: send HELO first" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: EHLO hostname"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Command line too long"
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "501  Syntax: HELO hostname" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "250  OK" -> "503  Error: send HELO first" [dir="both"]
+    "252  Cannot VRFY user, but will accept message and attempt delivery" -> "500  Error: command not recognized" [dir="both"]
+    "502  EXPN not implemented" -> "500  Error: bad syntax" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "501  Syntax: RSET"
+    "500  Error: command not recognized" -> "0  " [dir="both"]
+    "501  Syntax: EHLO hostname" -> "250  OK" [dir="both"]
+    "503  Error: send HELO first" -> "250  OK" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: bad syntax" -> "503  Error: send HELO first" [dir="both"]
+    "502  EXPN not implemented" -> "221  Bye"
+    "500  Error: command not recognized" -> "500  Error: bad syntax" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "502  EXPN not implemented" [dir="both"]
+    "500  Error: command not recognized" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "221  Bye" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "500  Error: bad syntax" -> "0  "
+    "503  Error: send HELO first" -> "501  Syntax: RSET"
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "500  Error: bad syntax" -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: command not recognized" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: HELO hostname" [dir="both"]
+    "250  8BITMIME" -> "221  Bye"
+    "501  Syntax: EHLO hostname" -> "502  EXPN not implemented" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "500  Error: bad syntax" [dir="both"]
+    "250  OK" -> "502  EXPN not implemented" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "500  Error: bad syntax" [dir="both"]
+    "500  Error: command not recognized" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "501  Syntax: EHLO hostname" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "501  Syntax: HELO hostname" -> "250  OK" [dir="both"]
+    "500  Command line too long" -> "502  EXPN not implemented"
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "250  OK" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  OK" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "250  OK" [dir="both"]
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "221  Bye"
+    "0  " -> "500  Error: command not recognized" [dir="both"]
+    "500  Error: bad syntax" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "501  Syntax: HELO hostname" -> "501  Syntax: HELO hostname" [dir="both"]
+    "501  Syntax: HELO hostname" -> "221  Bye"
+    "250  ARCH-DSK-01.localdomain" -> "501  Syntax: EHLO hostname"
+    "501  Syntax: VRFY <address>" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "250  OK" -> "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" [dir="both"]
+    "501  Syntax: HELO hostname" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "503  Error: send HELO first" [dir="both"]
+    "502  5.5.1 Too many unrecognized commands, goodbye." -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2"
+    "250  OK" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "502  EXPN not implemented" -> "250  ARCH-DSK-01.localdomain" [dir="both"]
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "502  EXPN not implemented" [dir="both"]
+    "501  Syntax: QUIT" -> "502  EXPN not implemented"
+    "501  Syntax: QUIT" -> "501  Syntax: VRFY <address>"
+    "501  Syntax: VRFY <address>" -> "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" [dir="both"]
+    "500  Error: command not recognized" -> "221  Bye"
+    "250  Supported commands: AUTH DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET VRFY" -> "0  "
+    "501  Syntax: EHLO hostname" -> "503  Error: send HELO first" [dir="both"]
+    "503  Error: send HELO first" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "220  ARCH-DSK-01.localdomain Python SMTP 1.4.4.post2" -> "250  ARCH-DSK-01.localdomain"
+    "250  OK" -> "502  5.5.1 Too many unrecognized commands, goodbye."
+    "501  Syntax: VRFY <address>" -> "501  Syntax: VRFY <address>" [dir="both"]
+    "502  EXPN not implemented" -> "252  Cannot VRFY user, but will accept message and attempt delivery" [dir="both"]
+    "500  Error: command not recognized" -> "501  Syntax: EHLO hostname" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "501  Syntax: MAIL FROM: <address> [SP <mail-parameters>]"
+    "503  Error: send HELO first" -> "250  ARCH-DSK-01.localdomain"
+    "500  Error: bad syntax" -> "221  Bye"
+    "500  Error: command not recognized" -> "503  Error: send HELO first" [dir="both"]
+    "501  Syntax: HELO hostname" -> "500  Error: command not recognized" [dir="both"]
+    "501  Syntax: VRFY <address>" -> "250  OK" [dir="both"]
+    "250  ARCH-DSK-01.localdomain" -> "500  Error: command not recognized" [dir="both"]
 }

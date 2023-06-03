@@ -3,7 +3,9 @@
 #![allow(unused_variables)]
 
 
+use std::num;
 use std::str::from_utf8;
+use std::io::{self, Write};
 
 use fuzz_client::Client;
 use fuzz_client::GreetingProtocol;
@@ -29,21 +31,46 @@ fn main() {
     let mut client = Client::new(server_address, transport_protocol, target_protocol);
     client.corpus = pcap_corpus;
 
-    let config = FuzzConfig {
-        generations: 2,
-        selection_pressure: 0.75,
-        sequence_mutation_rate: 0.4,
-        sequence_crossover_rate: 0.7,
-        message_mutation_rate: 0.3,
-        message_crossover_rate: 0.5,
-        message_pool_size: 75,
-        pool_update_rate: 0.4,
-        state_rarity_threshold: 0.2,
-        state_coverage_weight: 0.8,
-        response_time_weight: 0.6,
-        state_roc_weight: 0.8,
-        state_rarity_weight: 1.0,
-    };
+    // Create instance of Swarm
+    let num_particles = 10;
+    let generations = 5;
+    let message_pool_size = 50;
+    let pso_iterations = 10;
+    let inertial_weight = 0.5;
+    let cognitive_weight = 1.0;
+    let social_weight = 1.0;
+    let regularization_strength = 0.1;
 
-    client.fuzz(config);
+    let mut swarm = Swarm::new(
+        num_particles,
+        pso_iterations, 
+        generations, 
+        message_pool_size,
+        inertial_weight,
+        cognitive_weight,
+        social_weight,
+        regularization_strength,
+    );
+
+    // Run swarm and get set configs to swarm's global best
+    swarm.run_swarm(&mut client);
+
+    let mut pso_optimized_configs = swarm.global_best_position;
+
+    // Run fuzzing with configs
+    println!("Optimized configs found: {:?}", pso_optimized_configs);
+    let generations = 20;
+    pso_optimized_configs.generations = generations;
+
+
+    print!("\nPRESS ENTER TO RUN FUZZER ... \n");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+
+    client.fuzz(pso_optimized_configs, true);
+
+
+
 }

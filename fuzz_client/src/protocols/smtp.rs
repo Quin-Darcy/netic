@@ -424,7 +424,7 @@ impl Protocol for SMTP {
 
     fn parse_response(&self, response: &Response) -> SMTPServerState {
         let response_string = String::from_utf8_lossy(&response.data).to_string();
-        println!("    Response: {}", &response_string);
+        //println!("    Response: {}", &response_string);
         
         // Try to split the response string by the first whitespace or hyphen
         let mut parts = response_string.splitn(2, |c| c == ' ' || c == '-');
