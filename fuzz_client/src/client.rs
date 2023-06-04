@@ -489,13 +489,16 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 
 		        // Update message_pool with a random message from the current message_sequence at the defined rate
     			if rng.gen_range(0.0..1.0) < config.pool_update_rate {
-    				if self.message_pool.len() == config.message_pool_size {
+    				if self.message_pool.len() == config.message_pool_size && config.message_pool_size > 0 {
     					let random_index = rng.gen_range(0..config.message_pool_size);
     					self.message_pool.remove(random_index);
     				}
-        			let random_message_idx = rng.gen_range(0..message_sequence.messages.len());
-        			let random_message = message_sequence.messages[random_message_idx].clone();
-        			self.message_pool.push(random_message);
+
+					if message_sequence.messages.len() > 0 {
+        				let random_message_idx = rng.gen_range(0..message_sequence.messages.len());
+        				let random_message = message_sequence.messages[random_message_idx].clone();
+        				self.message_pool.push(random_message);
+					}
     			}
 			}
 

@@ -32,14 +32,14 @@ fn main() {
     client.corpus = pcap_corpus;
 
     // Create instance of Swarm
-    let num_particles = 10;
-    let generations = 5;
+    let num_particles = 2;
+    let generations = 2;
     let message_pool_size = 50;
-    let pso_iterations = 10;
-    let inertial_weight = 0.5;
+    let pso_iterations = 2;
+    let inertial_weight = 1.0;
     let cognitive_weight = 1.0;
     let social_weight = 1.0;
-    let regularization_strength = 0.1;
+    let regularization_strength = 0.2;
 
     let mut swarm = Swarm::new(
         num_particles,
@@ -57,20 +57,17 @@ fn main() {
 
     let mut pso_optimized_configs = swarm.global_best_position;
 
-    // Run fuzzing with configs
-    println!("Optimized configs found: {:?}", pso_optimized_configs);
+    // Run fuzzing with configs from swarm
     let generations = 20;
     pso_optimized_configs.generations = generations;
 
-
+    /* 
     print!("\nPRESS ENTER TO RUN FUZZER ... \n");
     io::stdout().flush().unwrap();
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
+    */
 
     client.fuzz(pso_optimized_configs, true);
-
-
-
 }
