@@ -24,7 +24,7 @@ fn main() {
     let transport_protocol: TransportProtocol = TransportProtocol::TCP;
     let target_protocol: SMTP = SMTP {};
 
-    let pcap_file = String::from("../resources/new_smtp.pcap");
+    let pcap_file = String::from("../resources/smtp.pcap");
     let pcap_corpus = target_protocol.parse_pcap(pcap_file.as_str(), server_address.as_str());
 
     // Create instance of Client
@@ -32,14 +32,15 @@ fn main() {
     client.corpus = pcap_corpus;
 
     // Create instance of Swarm
-    let num_particles = 2;
-    let generations = 2;
+    let num_particles = 10;
+    let generations = 10;
     let message_pool_size = 50;
-    let pso_iterations = 2;
+    let pso_iterations = 13;
     let inertial_weight = 1.0;
     let cognitive_weight = 1.0;
     let social_weight = 1.0;
-    let regularization_strength = 0.2;
+    let regularization_strength = 0.25;
+    let vmax = 0.5;
 
     let mut swarm = Swarm::new(
         num_particles,
@@ -50,6 +51,7 @@ fn main() {
         cognitive_weight,
         social_weight,
         regularization_strength,
+        vmax,
     );
 
     // Run swarm and get set configs to swarm's global best
@@ -61,13 +63,11 @@ fn main() {
     let generations = 20;
     pso_optimized_configs.generations = generations;
 
-    /* 
     print!("\nPRESS ENTER TO RUN FUZZER ... \n");
     io::stdout().flush().unwrap();
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
-    */
 
     client.fuzz(pso_optimized_configs, true);
 }
