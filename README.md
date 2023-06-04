@@ -47,7 +47,11 @@ The fuzzer iteratively executes the following steps for a specified number of ge
 
 4. Evolve the generation by applying selection, crossover, and mutation operations to create a new generation of message sequences.
 
+![Program Diagram](resources/program_diagram.png)
+
 After the specified number of generations have been created and tested, the final state model is converted into a digraph which then can be converted to PNG or SVG
+
+![Program Diagram](resources/full_diagram.png)
 
 **Extending Protocol Support**
 
