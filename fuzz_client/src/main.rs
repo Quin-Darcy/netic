@@ -2,7 +2,6 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-
 use std::num;
 use std::str::from_utf8;
 use std::io::{self, Write};
@@ -15,8 +14,57 @@ use fuzz_client::MessageSequence;
 use fuzz_client::TransportProtocol;
 use fuzz_client::Protocol;
 use fuzz_client::Swarm;
+use fuzz_client::BayesianOptimizer;
 
 
+fn optimize_hyperparameters<P: Protocol+PartialEq>(client: &mut Client<P>) -> FuzzConfig {
+    // Create instance of Swarm
+    let pso_swarm_size = 5;
+    let pso_fuzzer_generations = 5;
+    let message_pool_size = 50;
+    let pso_iterations = 5;
+    let inertial_weight = 1.0;
+    let cognitive_weight = 1.0;
+    let social_weight = 1.0;
+    let regularization_strength = 0.25;
+    let vmax = 0.25;
+
+    let mut swarm = Swarm::new(
+        pso_swarm_size,
+        pso_iterations, 
+        pso_fuzzer_generations, 
+        message_pool_size,
+        inertial_weight,
+        cognitive_weight,
+        social_weight,
+        regularization_strength,
+        vmax,
+    );
+
+    // Run swarm and get set configs to swarm's global best
+    swarm.run_swarm(client);
+    let mut pso_optimized_configs = swarm.global_best_position;
+
+    // Create instance of BayesianOptimizer
+    let bayesian_iterations = 40;
+    let fuzzer_generations = 7;
+
+    pso_optimized_configs.generations = fuzzer_generations;
+    
+    let mut bayesian_optimizer = BayesianOptimizer::new(
+        &pso_optimized_configs,
+        bayesian_iterations,
+        pso_swarm_size,
+        pso_iterations,
+        pso_fuzzer_generations,
+    );
+
+    // Run Bayesian optimization and get set configs to optimizer's global best
+    bayesian_optimizer.run_optimization(client);
+
+    // Return the optimized configs
+    bayesian_optimizer.get_optimized_hyperparameters()
+}
 
 fn main() {
     // User-provided server address and transport protocol
@@ -31,37 +79,11 @@ fn main() {
     let mut client = Client::new(server_address, transport_protocol, target_protocol);
     client.corpus = pcap_corpus;
 
-    // Create instance of Swarm
-    let num_particles = 10;
-    let generations = 10;
-    let message_pool_size = 50;
-    let pso_iterations = 13;
-    let inertial_weight = 1.0;
-    let cognitive_weight = 1.0;
-    let social_weight = 1.0;
-    let regularization_strength = 0.25;
-    let vmax = 0.5;
-
-    let mut swarm = Swarm::new(
-        num_particles,
-        pso_iterations, 
-        generations, 
-        message_pool_size,
-        inertial_weight,
-        cognitive_weight,
-        social_weight,
-        regularization_strength,
-        vmax,
-    );
-
-    // Run swarm and get set configs to swarm's global best
-    swarm.run_swarm(&mut client);
-
-    let mut pso_optimized_configs = swarm.global_best_position;
+    let mut optimized_configs = optimize_hyperparameters(&mut client);
 
     // Run fuzzing with configs from swarm
     let generations = 20;
-    pso_optimized_configs.generations = generations;
+    optimized_configs.generations = generations;
 
     print!("\nPRESS ENTER TO RUN FUZZER ... \n");
     io::stdout().flush().unwrap();
@@ -69,5 +91,5 @@ fn main() {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 
-    client.fuzz(pso_optimized_configs, true);
+    client.fuzz(optimized_configs, true);
 }

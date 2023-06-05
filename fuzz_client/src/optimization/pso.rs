@@ -32,35 +32,35 @@ impl Particle {
         let mut rng = rand::thread_rng();
 
         let velocity = FuzzConfig {
-            generations: 0,
-            selection_pressure: rng.gen_range(-vmax..vmax),
-            sequence_mutation_rate: rng.gen_range(-vmax..vmax),
-            sequence_crossover_rate: rng.gen_range(-vmax..vmax),
-            message_mutation_rate: rng.gen_range(-vmax..vmax),
-            message_crossover_rate: rng.gen_range(-vmax..vmax),
-            message_pool_size: 0,
-            pool_update_rate: rng.gen_range(-vmax..vmax),
-            state_rarity_threshold: rng.gen_range(-vmax..vmax),
-            state_coverage_weight: rng.gen_range(-vmax..vmax),
-            response_time_weight: rng.gen_range(-vmax..vmax),
-            state_roc_weight: rng.gen_range(-vmax..vmax),
-            state_rarity_weight: rng.gen_range(-vmax..vmax),
+            generations:                0,
+            selection_pressure:         rng.gen_range(-vmax..vmax),
+            sequence_mutation_rate:     rng.gen_range(-vmax..vmax),
+            sequence_crossover_rate:    rng.gen_range(-vmax..vmax),
+            message_mutation_rate:      rng.gen_range(-vmax..vmax),
+            message_crossover_rate:     rng.gen_range(-vmax..vmax),
+            message_pool_size:          0,
+            pool_update_rate:           rng.gen_range(-vmax..vmax),
+            state_rarity_threshold:     rng.gen_range(-vmax..vmax),
+            state_coverage_weight:      rng.gen_range(-vmax..vmax),
+            response_time_weight:       rng.gen_range(-vmax..vmax),
+            state_roc_weight:           rng.gen_range(-vmax..vmax),
+            state_rarity_weight:        rng.gen_range(-vmax..vmax),
         };
 
         let position = FuzzConfig {
-            generations: generations,
-            selection_pressure: rng.gen_range(0.0..1.0),
-            sequence_mutation_rate: rng.gen_range(0.0..1.0),
-            sequence_crossover_rate: rng.gen_range(0.0..1.0),
-            message_mutation_rate: rng.gen_range(0.0..1.0),
-            message_crossover_rate: rng.gen_range(0.0..1.0),
-            message_pool_size: message_pool_size,
-            pool_update_rate: rng.gen_range(0.0..1.0),
-            state_rarity_threshold: rng.gen_range(0.0..0.5),
-            state_coverage_weight: rng.gen_range(0.0..1.0),
-            response_time_weight: rng.gen_range(0.0..1.0),
-            state_roc_weight: rng.gen_range(0.0..1.0),
-            state_rarity_weight: rng.gen_range(0.0..1.0),
+            generations:                generations,
+            selection_pressure:         rng.gen_range(0.0..1.0),
+            sequence_mutation_rate:     rng.gen_range(0.0..1.0),
+            sequence_crossover_rate:    rng.gen_range(0.0..1.0),
+            message_mutation_rate:      rng.gen_range(0.0..1.0),
+            message_crossover_rate:     rng.gen_range(0.0..1.0),
+            message_pool_size:          message_pool_size,
+            pool_update_rate:           rng.gen_range(0.0..1.0),
+            state_rarity_threshold:     rng.gen_range(0.0..0.5),
+            state_coverage_weight:      rng.gen_range(0.0..1.0),
+            response_time_weight:       rng.gen_range(0.0..1.0),
+            state_roc_weight:           rng.gen_range(0.0..1.0),
+            state_rarity_weight:        rng.gen_range(0.0..1.0),
         };
 
         Particle {
@@ -194,7 +194,7 @@ impl Particle {
         }
 
         // Check velocity bounds - abs max velocity is 10% of the range of the parameter
-        self.velocity.selection_pressure = self.velocity.selection_pressure.max(-vmax).min(vmax);
+        self.velocity.selection_pressure =  self.velocity.selection_pressure.max(-vmax).min(vmax);
         self.velocity.sequence_mutation_rate = self.velocity.sequence_mutation_rate.max(-vmax).min(vmax);
         self.velocity.sequence_crossover_rate = self.velocity.sequence_crossover_rate.max(-vmax).min(vmax);
         self.velocity.message_mutation_rate = self.velocity.message_mutation_rate.max(-vmax).min(vmax);
@@ -292,7 +292,7 @@ impl Swarm {
             self.inertial_weight = self.inertial_weight.max(final_inertia);
 
             for particle in &mut self.particles {
-                println!("      Particle: {}", count);
+                println!("     Particle: {}", count);
                 print_particle(&particle);
                 
                 // Update the particle's position and velocity

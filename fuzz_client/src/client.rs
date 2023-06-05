@@ -469,6 +469,18 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 				println!("GENERATION {}", j);
 			}
 
+			// If corpus ever becomes empty, we need to repopulate it
+			if self.corpus.is_empty() {
+				let mut rng = rand::thread_rng();
+				let num_message_sequences = rng.gen_range(2..10);
+
+				for _ in 0..num_message_sequences {
+					let sequence_len = rng.gen_range(1..10);
+					let message_sequence = MessageSequence::random_message_sequence(self.protocol.clone(), sequence_len);
+					self.corpus.push(message_sequence);
+				}
+			}
+
 			let corpus_len: usize = self.corpus.len();
 			let mut message_sequence: MessageSequence<P>;
 			let mut interaction_history: Vec<(Message<P>, Response)>;

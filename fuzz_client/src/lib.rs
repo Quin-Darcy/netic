@@ -13,6 +13,7 @@ pub use protocols::GreetingProtocol;
 pub use protocols::SMTP;
 
 pub use optimization::Swarm;
+pub use optimization::BayesianOptimizer;
 
 pub use transport::{Transport, TransportProtocol};
 pub use message::Message;
