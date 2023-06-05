@@ -19,10 +19,10 @@ use fuzz_client::BayesianOptimizer;
 
 fn optimize_hyperparameters<P: Protocol+PartialEq>(client: &mut Client<P>) -> FuzzConfig {
     // Create instance of Swarm
-    let pso_swarm_size = 5;
-    let pso_fuzzer_generations = 5;
+    let pso_swarm_size = 20;
+    let pso_fuzzer_generations = 10;
+    let pso_iterations = 100;
     let message_pool_size = 50;
-    let pso_iterations = 5;
     let inertial_weight = 1.0;
     let cognitive_weight = 1.0;
     let social_weight = 1.0;
@@ -46,8 +46,8 @@ fn optimize_hyperparameters<P: Protocol+PartialEq>(client: &mut Client<P>) -> Fu
     let mut pso_optimized_configs = swarm.global_best_position;
 
     // Create instance of BayesianOptimizer
-    let bayesian_iterations = 40;
-    let fuzzer_generations = 7;
+    let bayesian_iterations = 50;
+    let fuzzer_generations = 10;
 
     pso_optimized_configs.generations = fuzzer_generations;
     

@@ -1,6 +1,6 @@
 # Netic: Genetic Network Protocol Fuzzer
 
-This Rust program is a genetic fuzzer for testing protocol implementations. The fuzzer utilizes an evolutionary algorithm, Particle Swarm Optimization (PSO) for hyper-parameter optimization, and heuristics to generate protocol-specific message sequences that can potentially uncover bugs in the target protocol implementation.
+This Rust program is a genetic fuzzer for testing protocol implementations. The fuzzer utilizes an evolutionary algorithm, Particle Swarm Optimization (PSO), and Bayesian optimization for two-stage hyper-parameter tuning, and heuristics to generate protocol-specific message sequences that can potentially uncover bugs in the target protocol implementation.
 
 ### Overview
 
@@ -8,7 +8,7 @@ This Rust program is a genetic fuzzer for testing protocol implementations. The 
 
 In the beginning, the fuzzer initializes a `Client` with the user provided server address and transport protocol. The `Client` is also configured with the target protocol (e.g., SMTP), and an initial corpus of message sequences is created by parsing a PCAP file.
 
-The program performs Particle Swarm Optimization (PSO) to optimize the fuzzing paramters. These optimized parameters are then used for running the fuzzing process.
+The program performs two stages of hyperparameter optimization. Initially, it uses Particle Swarm Optimization (PSO) to optimize the fuzzing parameters. The second stage utilizes Bayesian Optimization to fine-tune the parameters further, enabling the fuzzing process to be more precise and effective.
 
 ```rust
 fn main() {
@@ -23,15 +23,11 @@ fn main() {
     let mut client = Client::new(server_address, transport_protocol, target_protocol);
     client.corpus = pcap_corpus;
 
-    // PSO
-    let mut swarm = Swarm::new(...);
-    swarm.run_swarm(&mut client);
-
-    let mut pso_optimized_configs = swarm.global_best_position;
-    println!("Optimized configs found: {:?}", pso_optimized_configs);
+    // Two-stage Hyperparameter Optimization
+    let mut optimized_configs = optimize_hyperparameters(&mut client);
 
     // Fuzzing
-    client.fuzz(pso_optimized_configs, true);
+    client.fuzz(optimized_configs, true);
 }
 ```
 
@@ -90,7 +86,7 @@ With the protocol-specific `Protocol` implementation, the `Client` and `Fuzzer` 
 
 - **Genetic Algorithm:** The fuzzer uses a genetic algorithm to evolve message sequences, applying selection, crossover, and mutation operations. This helps explore diverse and potentially interesting test cases.
 
-- **PSO Hyper-parameter Optimization**: The fuzzer uses Particle Swarm Optimization (PSO) for tuning key parameters of the genetic algorithm, such as selection pressure, mutation rate, message pool update rate, etc. This enables more effective exploration of the search space.
+- **Two-stage Hyper-parameter Optimization**: The fuzzer uses Particle Swarm Optimization (PSO) for the initial tuning of key parameters of the genetic algorithm, such as selection pressure, mutation rate, message pool update rate, etc. Then, it uses Bayesian Optimization to fine-tune these parameters further. This two-stage approach enables a more effective exploration of the search space.
 
 - **State Model:** The program builds and updates a state model of the server based on the server's responses to message sequences. This helps guide the fuzzer towards new and unexplored states.
 
@@ -109,6 +105,85 @@ The `Protocol` trait requires associated types for `MessageType`, `MessageSectio
 By using the `Self` type alias, the `Protocol` trait ensures that the `Message` struct and the implementing type share the same protocol. This prevents mixing different protocols and enforces a consistent implementation. The use of `Self` in the method signatures also allows for generic code that works with any type implementing the `Protocol` trait.
 
 In summary, the flexible and extensible design is achieved through the use of Rust's trait system, making it easy to add support for new protocols by simply implementing the `Protocol` trait with the desired behavior and associated types. The majority of the code and its structure remains independent of any specific protocol, highlighting the reusability and adaptability of the design.
+
+### Hyperparameter Optimization
+
+The program's hyperparameter optimization process is conducted in two stages. The initial phase employs Particle Swarm Optimization (PSO) to optimize the fuzzing parameters, while the secondary phase uses Bayesian Optimization to further refine these parameters, thereby increasing the precision and effectiveness of the fuzzing process.
+
+The fitness computation for each set of hyperparameters proceeds differently for each stage. 
+
+During the PSO stage, a designated number of fuzzer generations is defined, alongside other parameters. As the PSO iterates and updates each particle within the swarm, the current particle - referred to as the FuzzConfig - is evaluated. This is done by passing the FuzzConfig to the client, which then allows it to run for a specified number of generations. The average fitness of the population of message sequences is calculated thereafter. The slope of the best fit line, which passes through the data points (x-axis representing the generation number, y-axis representing the average fitness for that generation) is returned from the Client. Following this, the PSO algorithm performs L2 regularization on the slope of the best fit line, with the output being the fitness of the particle. Here's the fitness calculation snippet from the PSO code:
+
+```rust
+// pso.rs
+    fn evaluate_fitness<P: Protocol+PartialEq>(&mut self, client: &mut Client<P>, regularization_strength: f32) -> f32 {
+        client.fuzz(self.position.clone(), false);
+
+        let slope_of_best_fit_line = client.evaluate();
+
+        // Add up the squares of each hyperparameter in the FuzzConfig
+        let l2_norm = self.position.selection_pressure.powi(2) 
+                     + self.position.sequence_mutation_rate.powi(2)
+                     + self.position.sequence_crossover_rate.powi(2)
+                     + self.position.message_mutation_rate.powi(2)
+                     + self.position.message_crossover_rate.powi(2)
+                     + self.position.pool_update_rate.powi(2)
+                     + self.position.state_rarity_threshold.powi(2)
+                     + self.position.state_coverage_weight.powi(2)
+                     + self.position.response_time_weight.powi(2)
+                     + self.position.state_roc_weight.powi(2)
+                     + self.position.state_rarity_weight.powi(2);
+        let regularization_term = regularization_strength * l2_norm;
+        
+        // Fitness is the slope of the best fit line minus the regularization term
+        let fitness = slope_of_best_fit_line - regularization_term;
+        
+        fitness
+    }
+```
+
+During the Bayesian Optimization stage, the fitness computation still uses the same fitness definition, but L2 regularization is not performed. The Bayesian optimization process performs one iteration at a time, calculating new hyperparameters and predicting fitness based on these updated hyperparameters. It then updates the variances based on the observed and predicted fitness values using exponential smoothing, where the prediction is a weighted average of past observations, with the weights decaying exponentially as the observations get older. These variances are then used in subsequent iterations. Here's the relevant code snippet from the Bayesian Optimization process:
+
+```rust
+// bayesian.rs
+    // Performs one iteration of the Bayesian optimization process
+    fn iterate<P: Protocol+PartialEq>(&mut self, client: &mut Client<P>) {
+        // Calculate new hyperparameters
+        self.calculate_new_hyperparameters();
+
+        // Predict the fitness based on the updated hyperparameters
+        let predicted_fitness = self.predict_fitness();
+
+        // Create FuzzConfig instance with new hyperparameters
+        let new_configs = FuzzConfig {
+            generations: self.hyperparameters[0] as usize,
+            selection_pressure: self.hyperparameters[1],
+            sequence_mutation_rate: self.hyperparameters[2],
+            sequence_crossover_rate: self.hyperparameters[3],
+            message_mutation_rate: self.hyperparameters[4],
+            message_crossover_rate: self.hyperparameters[5],
+            message_pool_size: self.hyperparameters[6] as usize,
+            pool_update_rate: self.hyperparameters[7],
+            state_rarity_threshold: self.hyperparameters[8],
+            state_coverage_weight: self.hyperparameters[9],
+            response_time_weight: self.hyperparameters[10],
+            state_roc_weight: self.hyperparameters[11],
+            state_rarity_weight: self.hyperparameters[12],
+        };
+
+        // Run the fuzzer with the new configs and get the fitness score
+        client.fuzz(new_configs, false);
+        let observed_fitness = client.evaluate();
+
+        // Update the variances based on the fitness score
+        self.update_variances(predicted_fitness, observed_fitness);
+
+        // Update the observed fitnesses
+        self.observed_fitnesses.push(observed_fitness);
+    }
+```
+
+The Bayesian Optimization process continues to iterate in this manner for a specified number of iterations.
 
 ### Future Directions
 

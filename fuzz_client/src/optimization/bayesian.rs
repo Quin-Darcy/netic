@@ -140,7 +140,7 @@ impl BayesianOptimizer {
             let mut difference = (observed_fitness - predicted_fitness).abs() / (max_slope - min_slope);
 
             // Add slight noise to the difference to encourage exploration
-            let noise = rand::thread_rng().gen_range(-0.1..0.1);
+            let noise = rand::thread_rng().gen_range(-0.025..0.025);
             difference = difference + noise;
 
             // Clip the difference to [0, 1] to ensure it stays within the bounds of the variance
