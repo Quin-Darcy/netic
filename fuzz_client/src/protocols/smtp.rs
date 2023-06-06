@@ -34,7 +34,7 @@ use crate::MessageSequence;
 use crate::Transport;
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Copy)]
 pub struct SMTP;
 
 impl Protocol for SMTP {

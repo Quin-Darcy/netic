@@ -72,18 +72,25 @@ fn main() {
     let transport_protocol: TransportProtocol = TransportProtocol::TCP;
     let target_protocol: SMTP = SMTP {};
 
-    let pcap_file = String::from("../resources/new_smtp.pcap");
-    let pcap_corpus = target_protocol.parse_pcap(pcap_file.as_str(), server_address.as_str());
+    // Optimized hyperparameters on smaller PCAP file to save time
+    let pcap_file = String::from("../resources/smtp.pcap");
+    let pcap_corpus = target_protocol.parse_pcap(pcap_file.as_str(), server_address.as_str().clone());
 
     // Create instance of Client
-    let mut client = Client::new(server_address, transport_protocol, target_protocol);
+    let mut client = Client::new(server_address.clone(), transport_protocol, target_protocol);
     client.corpus = pcap_corpus;
 
     let mut optimized_configs = optimize_hyperparameters(&mut client);
 
     // Run fuzzing with configs from swarm
-    let generations = 20;
+    let generations = 30;
     optimized_configs.generations = generations;
+
+    // Reset client's corpus to "official" corpus by parsing bigger PCAP
+    let pcap_file = String::from("../resources/new_smtp.pcap");
+    let pcap_corpus = target_protocol.clone().parse_pcap(pcap_file.as_str(), server_address.as_str().clone());
+
+    client.corpus = pcap_corpus;
 
     println!("Optimized Hyperparameters: ({:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4})\n", 
         optimized_configs.generations,

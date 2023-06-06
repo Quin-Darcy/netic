@@ -392,7 +392,11 @@ fn print_particle(particle: &Particle, global_best: &FuzzConfig, global_best_fit
         println!("        PBESTFIT: {:.4}", particle.personal_best_fitness);
     }
 
-    println!("        GBESTFIT: {:.4}\n", global_best_fitness);
+    if particle.personal_best_fitness == f32::MIN {
+        println!("        GBESTFIT: ----");
+    } else {
+        println!("        GBESTFIT: {:.4}\n", global_best_fitness);
+    }
 }
 
 fn print_position(position: &FuzzConfig) {
