@@ -19,15 +19,15 @@ use fuzz_client::BayesianOptimizer;
 
 fn optimize_hyperparameters<P: Protocol+PartialEq>(client: &mut Client<P>) -> FuzzConfig {
     // Create instance of Swarm
-    let pso_swarm_size = 20;
+    let pso_swarm_size = 10;
     let pso_fuzzer_generations = 10;
-    let pso_iterations = 100;
+    let pso_iterations = 10;
     let message_pool_size = 50;
     let inertial_weight = 1.0;
     let cognitive_weight = 1.0;
     let social_weight = 1.0;
-    let regularization_strength = 0.25;
-    let vmax = 0.25;
+    let regularization_strength = 0.1;
+    let vmax = 0.1;
 
     let mut swarm = Swarm::new(
         pso_swarm_size,
@@ -46,8 +46,8 @@ fn optimize_hyperparameters<P: Protocol+PartialEq>(client: &mut Client<P>) -> Fu
     let mut pso_optimized_configs = swarm.global_best_position;
 
     // Create instance of BayesianOptimizer
-    let bayesian_iterations = 50;
-    let fuzzer_generations = 10;
+    let bayesian_iterations = 20;
+    let fuzzer_generations = 20;
 
     pso_optimized_configs.generations = fuzzer_generations;
     
@@ -72,7 +72,7 @@ fn main() {
     let transport_protocol: TransportProtocol = TransportProtocol::TCP;
     let target_protocol: SMTP = SMTP {};
 
-    let pcap_file = String::from("../resources/smtp.pcap");
+    let pcap_file = String::from("../resources/new_smtp.pcap");
     let pcap_corpus = target_protocol.parse_pcap(pcap_file.as_str(), server_address.as_str());
 
     // Create instance of Client
@@ -85,11 +85,29 @@ fn main() {
     let generations = 20;
     optimized_configs.generations = generations;
 
+    println!("Optimized Hyperparameters: ({:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4})\n", 
+        optimized_configs.generations,
+        optimized_configs.selection_pressure,
+        optimized_configs.sequence_mutation_rate,
+        optimized_configs.sequence_crossover_rate,
+        optimized_configs.message_mutation_rate,
+        optimized_configs.message_crossover_rate,
+        optimized_configs.message_pool_size,
+        optimized_configs.pool_update_rate,
+        optimized_configs.state_rarity_threshold,
+        optimized_configs.state_coverage_weight,
+        optimized_configs.response_time_weight,
+        optimized_configs.state_roc_weight,
+        optimized_configs.state_rarity_weight
+    );
+
     print!("\nPRESS ENTER TO RUN FUZZER ... \n");
     io::stdout().flush().unwrap();
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
+
+    // (20, 0.4208, 0.4129, 0.2749, 0.6024, 0.3268, 50, 0.4425, 0.4724, 0.3726, 0.7373, 0.2529, 0.5072)
 
     client.fuzz(optimized_configs, true);
 }

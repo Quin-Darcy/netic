@@ -51,6 +51,26 @@ pub struct FuzzConfig {
 	pub state_rarity_weight: f32,
 }
 
+impl FuzzConfig {
+	pub fn new() -> Self {
+		Self {
+			generations: 0,
+			selection_pressure: 0.0,
+			sequence_mutation_rate: 0.0,
+			sequence_crossover_rate: 0.0,
+			message_mutation_rate: 0.0,
+			message_crossover_rate: 0.0,
+			message_pool_size: 0,
+			pool_update_rate: 0.0,
+			state_rarity_threshold: 0.0,
+			state_coverage_weight: 0.0,
+			response_time_weight: 0.0,
+			state_roc_weight: 0.0,
+			state_rarity_weight: 0.0,
+		}
+	}
+}
+
 
 pub struct Client<P: Protocol + Clone + PartialEq> {
 	server_address: String,
@@ -142,7 +162,7 @@ impl<P: Protocol + Clone + PartialEq> Client<P> {
 	            }
 	        }
 
-	        // wait message_sequence.timings[index] many seconds
+	        // Wait message_sequence.timings[index] many seconds
 	        // before sending the next message
 	        if index < message_sequence.timings.len() {
 	            let sleep_duration: Duration = Duration::from_secs_f32(message_sequence.timings[index]);

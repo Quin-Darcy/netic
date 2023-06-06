@@ -49,18 +49,18 @@ impl Particle {
 
         let position = FuzzConfig {
             generations:                generations,
-            selection_pressure:         rng.gen_range(0.0..1.0),
-            sequence_mutation_rate:     rng.gen_range(0.0..1.0),
-            sequence_crossover_rate:    rng.gen_range(0.0..1.0),
-            message_mutation_rate:      rng.gen_range(0.0..1.0),
-            message_crossover_rate:     rng.gen_range(0.0..1.0),
+            selection_pressure:         rng.gen_range(0.5..1.0),
+            sequence_mutation_rate:     rng.gen_range(0.5..1.0),
+            sequence_crossover_rate:    rng.gen_range(0.5..1.0),
+            message_mutation_rate:      rng.gen_range(0.5..1.0),
+            message_crossover_rate:     rng.gen_range(0.5..1.0),
             message_pool_size:          message_pool_size,
-            pool_update_rate:           rng.gen_range(0.0..1.0),
-            state_rarity_threshold:     rng.gen_range(0.0..0.5),
-            state_coverage_weight:      rng.gen_range(0.0..1.0),
-            response_time_weight:       rng.gen_range(0.0..1.0),
-            state_roc_weight:           rng.gen_range(0.0..1.0),
-            state_rarity_weight:        rng.gen_range(0.0..1.0),
+            pool_update_rate:           rng.gen_range(0.5..1.0),
+            state_rarity_threshold:     rng.gen_range(0.5..1.0),
+            state_coverage_weight:      rng.gen_range(0.5..1.0),
+            response_time_weight:       rng.gen_range(0.5..1.0),
+            state_roc_weight:           rng.gen_range(0.5..1.0),
+            state_rarity_weight:        rng.gen_range(0.5..1.0),
         };
 
         Particle {
@@ -293,7 +293,7 @@ impl Swarm {
 
             for particle in &mut self.particles {
                 println!("     Particle: {}", count);
-                print_particle(&particle);
+                print_particle(&particle, &self.global_best_position, &self.global_best_fitness);
                 
                 // Update the particle's position and velocity
                 particle.update_particle(
@@ -321,8 +321,8 @@ impl Swarm {
     }
 }
 
-fn print_particle(particle: &Particle) {
-    println!("        Position: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})", 
+fn print_particle(particle: &Particle, global_best: &FuzzConfig, global_best_fitness: &f32) {
+    println!("        POSITION: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})", 
         particle.position.generations,
         particle.position.selection_pressure,
         particle.position.sequence_mutation_rate,
@@ -338,7 +338,7 @@ fn print_particle(particle: &Particle) {
         particle.position.state_rarity_weight,
     );
 
-    println!("        Velocity: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})",
+    println!("        VELOCITY: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})",
         particle.velocity.generations,
         particle.velocity.selection_pressure,
         particle.velocity.sequence_mutation_rate,
@@ -354,11 +354,49 @@ fn print_particle(particle: &Particle) {
         particle.velocity.state_rarity_weight,
     ); 
 
-    println!("        Personal Best: {:.4}\n", particle.personal_best_fitness);
+    println!("        PBESTPOS: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})", 
+        particle.personal_best_position.generations,
+        particle.personal_best_position.selection_pressure,
+        particle.personal_best_position.sequence_mutation_rate,
+        particle.personal_best_position.sequence_crossover_rate,
+        particle.personal_best_position.message_mutation_rate,
+        particle.personal_best_position.message_crossover_rate,
+        particle.personal_best_position.message_pool_size,
+        particle.personal_best_position.pool_update_rate,
+        particle.personal_best_position.state_rarity_threshold,
+        particle.personal_best_position.state_coverage_weight,
+        particle.personal_best_position.response_time_weight,
+        particle.personal_best_position.state_roc_weight,
+        particle.personal_best_position.state_rarity_weight,
+    );
+
+    println!("        GBESTPOS: ({:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2}, {:.2})",
+        global_best.generations,
+        global_best.selection_pressure,
+        global_best.sequence_mutation_rate,
+        global_best.sequence_crossover_rate,
+        global_best.message_mutation_rate,
+        global_best.message_crossover_rate,
+        global_best.message_pool_size,
+        global_best.pool_update_rate,
+        global_best.state_rarity_threshold,
+        global_best.state_coverage_weight,
+        global_best.response_time_weight,
+        global_best.state_roc_weight,
+        global_best.state_rarity_weight,
+    ); 
+
+    if particle.personal_best_fitness == f32::MIN {
+        println!("        PBESTFIT: ----");
+    } else {
+        println!("        PBESTFIT: {:.4}", particle.personal_best_fitness);
+    }
+
+    println!("        GBESTFIT: {:.4}\n", global_best_fitness);
 }
 
 fn print_position(position: &FuzzConfig) {
-    println!("    Position: ({:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4})\n", 
+    println!("    POSITION: ({:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4}, {:.4})\n", 
         position.generations,
         position.selection_pressure,
         position.sequence_mutation_rate,

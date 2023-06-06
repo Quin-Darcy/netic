@@ -964,7 +964,12 @@ fn mutate_helo_ehlo(message: &Message<SMTP>) -> Message<SMTP> {
 
             let position = rng.gen_range(0..domain_vec.len());
             let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-            domain_vec.insert(position, non_utf8_char);
+
+            if position == domain_vec.len()-1 {
+                domain_vec.push(non_utf8_char);
+            } else {
+                domain_vec.insert(position, non_utf8_char);
+            }
 
             let domain = domain_vec.into_iter().collect::<String>();
             mutated_sections.insert(SMTPMessageSectionsKey::Domain, SMTPMessageSectionsValue::DomainValue(domain));
@@ -1116,7 +1121,12 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 
             let position = rng.gen_range(0..email_address_vec.len());
             let non_utf8_char = char::from_u32(0x80 + rng.gen::<u32>() % 128).unwrap();
-            email_address_vec.insert(position, non_utf8_char);
+
+            if position == email_address_vec.len()-1 {
+                email_address_vec.push(non_utf8_char);
+            } else {
+                email_address_vec.insert(position, non_utf8_char);
+            }
 
             let email_address = email_address_vec.into_iter().collect::<String>();
             mutated_sections.insert(SMTPMessageSectionsKey::EmailAddress, SMTPMessageSectionsValue::EmailAddressValue(email_address));
@@ -1135,17 +1145,34 @@ fn mutate_mail_from_rcpt_to(message: &Message<SMTP>) -> Message<SMTP> {
 
             match mark {
                 0 => {
-                    email_address_vec.insert(position, ':');
+                    if position == email_address_vec.len()-1 {
+                        email_address_vec.push(':');
+                    } else {
+                        email_address_vec.insert(position, ':');
+                    }
                 }
                 1 => {
-                    email_address_vec.insert(position, '<');
+                    if position == email_address_vec.len()-1 {
+                        email_address_vec.push('<');
+                    } else {
+                        email_address_vec.insert(position, '<');
+                    }
                 }
                 2 => {
-                    email_address_vec.insert(position, '>');
+                    if position == email_address_vec.len()-1 {
+                        email_address_vec.push('>');
+                    } else {
+                        email_address_vec.insert(position, '>');
+                    }
                 }
                 3 => {
-                    email_address_vec.insert(position, '\r');
-                    email_address_vec.insert(position + 1, '\n');
+                    if position == email_address_vec.len()-1 || position == email_address_vec.len()-2 {
+                        email_address_vec.push('\r');
+                        email_address_vec.push('\n');
+                    } else {
+                        email_address_vec.insert(position, '\r');
+                        email_address_vec.insert(position + 1, '\n');
+                    }
                 }
                 _ => {}
             }
