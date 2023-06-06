@@ -187,4 +187,4 @@ The Bayesian Optimization process continues to iterate in this manner for a spec
 
 ### Future Directions
 
-This project is continually evolving. We are working on adding support for more protocols and enhancing the fuzzing strategies for more effective uncovering of bugs in protocol implementations. Currently the hyper-parameter optimization is being re-worked into a two-stage approach where PSO is run in the first stage and a Bayesian inference algorithm will take the paramter set converged on by PSO to fine tune it even further.
+This project is continually evolving. We are working on adding support for more protocols and enhancing the fuzzing strategies for more effective uncovering of bugs in protocol implementations. Currently the hyper-parameter optimization is being re-worked into a two-stage approach where PSO is run in the first stage and a Bayesian inference algorithm will take the parameter set converged on by PSO to fine tune it even further.
